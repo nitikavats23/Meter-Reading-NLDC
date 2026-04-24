@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-// Types
 type FormData = {
   userType: string;
   username: string;
@@ -17,7 +17,9 @@ type FormErrors = {
   confirmPassword?: string;
 };
 
-export default function Page() {
+export default function Step1() {
+  const router = useRouter();
+
   const [form, setForm] = useState<FormData>({
     userType: "",
     username: "",
@@ -27,54 +29,42 @@ export default function Page() {
 
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Handle input
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Password strength
-  const getStrength = (password: string) => {
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-
-    if (score <= 1) return "Weak";
-    if (score <= 3) return "Medium";
-    return "Strong";
-  };
-
-  // Validation
-  const validate = (): boolean => {
+  const validate = () => {
     const err: FormErrors = {};
 
     if (!form.userType) err.userType = "User type is required";
 
-    if (!form.username || form.username.length < 5) {
+    if (!form.username || form.username.length < 5)
       err.username = "Username must be at least 5 characters";
-    }
 
-    if (!form.password || form.password.length < 8) {
+    if (!form.password || form.password.length < 8)
       err.password = "Password must be at least 8 characters";
-    }
 
-    if (form.password !== form.confirmPassword) {
+    if (form.password !== form.confirmPassword)
       err.confirmPassword = "Passwords do not match";
-    }
 
     setErrors(err);
     return Object.keys(err).length === 0;
   };
 
-  // Next step
+  //  SAVE DRAFT
+  const handleSaveDraft = () => {
+    localStorage.setItem("step1_draft", JSON.stringify(form));
+    alert("Draft saved successfully!");
+  };
+
+  //  NEXT
   const handleNext = () => {
-    if (validate()) {
-      console.log("Step 1 Data:", form);
-      alert("Step 1 completed successfully!");
-    }
+    if (!validate()) return;
+
+    localStorage.setItem("step1", JSON.stringify(form));
+    router.push("http://localhost:3000/register/accountmanager");
   };
 
   const isDisabled =
@@ -85,8 +75,10 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+
       <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md space-y-6">
 
+        {/* HEADER */}
         <div>
           <h1 className="text-2xl font-semibold text-gray-800">
             Create Account
@@ -96,7 +88,7 @@ export default function Page() {
           </p>
         </div>
 
-        {/* User Type */}
+        {/* USER TYPE */}
         <div>
           <label className="text-sm font-medium text-gray-700">
             User Type *
@@ -118,7 +110,7 @@ export default function Page() {
           )}
         </div>
 
-        {/* Username */}
+        {/* USERNAME */}
         <div>
           <label className="text-sm font-medium text-gray-700">
             Username *
@@ -128,14 +120,14 @@ export default function Page() {
             value={form.username}
             onChange={handleChange}
             placeholder="Enter username"
-            className="w-full border rounded-lg p-2 mt-1 placeholder-gray-500 text-gray-800 focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
           {errors.username && (
-            <p className="text-red-500 text-sm">{errors.username}</p>
+            <p className="text-red-500 text-sm mt-1">{errors.username}</p>
           )}
         </div>
 
-        {/* Password */}
+        {/* PASSWORD */}
         <div>
           <label className="text-sm font-medium text-gray-700">
             Password *
@@ -147,22 +139,12 @@ export default function Page() {
             onChange={handleChange}
             className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
-
-          {form.password && (
-            <p className="text-sm mt-1 text-gray-600">
-              Strength:{" "}
-              <span className="font-medium">
-                {getStrength(form.password)}
-              </span>
-            </p>
-          )}
-
           {errors.password && (
-            <p className="text-red-500 text-sm">{errors.password}</p>
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
           )}
         </div>
 
-        {/* Confirm Password */}
+        {/* CONFIRM PASSWORD */}
         <div>
           <label className="text-sm font-medium text-gray-700">
             Confirm Password *
@@ -174,34 +156,39 @@ export default function Page() {
             onChange={handleChange}
             className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
-
-          {form.confirmPassword && (
-            <p className="text-sm mt-1">
-              {form.password === form.confirmPassword
-                ? "Passwords match ✔"
-                : "Passwords do not match "}
-            </p>
-          )}
-
           {errors.confirmPassword && (
-            <p className="text-red-500 text-sm">
+            <p className="text-red-500 text-sm mt-1">
               {errors.confirmPassword}
             </p>
           )}
         </div>
 
-        {/* Button */}
-        <button
-          onClick={handleNext}
-          disabled={isDisabled}
-          className={`w-full py-2 rounded-lg text-white font-medium ${
-            isDisabled
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
-          }`}
-        >
-          Next
-        </button>
+        {/* BUTTONS */}
+        <div className="flex gap-3">
+
+          {/* SAVE DRAFT */}
+          <button
+            onClick={handleSaveDraft}
+            className="w-1/2 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+          >
+            Save Draft
+          </button>
+
+
+          {/* NEXT */}
+          <button
+            onClick={handleNext}
+            disabled={isDisabled}
+            className={`w-1/2 py-2 rounded-lg text-white font-medium ${
+              isDisabled
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            Next
+          </button>
+
+        </div>
       </div>
     </div>
   );

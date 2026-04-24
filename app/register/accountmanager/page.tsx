@@ -59,6 +59,13 @@ export default function Page() {
     }
   };
 
+  //  SAVE DRAFT
+  const handleSaveDraft = () => {
+    localStorage.setItem("step1_draft", JSON.stringify(form));
+    alert("Draft saved successfully!");
+  };
+
+
   const isDisabled =
     !form.fullname ||
     !form.designation ||
@@ -178,19 +185,31 @@ export default function Page() {
             className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        {/* BUTTONS */}
+        <div className="flex gap-3">
 
-        {/* NEXT BUTTON */}
-        <button
-          onClick={handleNext}
-          disabled={isDisabled}
-          className={`w-full py-2 rounded-lg text-white font-medium ${
-            isDisabled
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
-          }`}
-        >
-          Next
-        </button>
+          {/* SAVE DRAFT */}
+          <button
+            onClick={handleSaveDraft}
+            className="w-1/2 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+          >
+            Save Draft
+          </button>
+
+
+          {/* NEXT */}
+          <button
+            onClick={handleNext}
+            disabled={isDisabled}
+            className={`w-1/2 py-2 rounded-lg text-white font-medium ${
+              isDisabled
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );
