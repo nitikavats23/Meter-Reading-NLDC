@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  userType      String   // Station / QCA / Owner / AMR
+  username      String   @unique
+  password      String
+  createdAt     DateTime @default(now())
+
+  profile       AccountManagerProfile?
+  entity        Entity?
+  meters        Meter[]
+  qcaDetails    QCADetails?
+  role          RoleAssignment?
+  associateManagers AssociateManager[]
+  approvals         Approval[]
+}
+
+model AccountManagerProfile {
+  id          String  @id @default(uuid())
+  userId      String  @unique
+  fullName    String
+  designation String
+  email       String  @unique
+  altEmail    String?
+  phone       String
+  altPhone    String?
+
+  user        User @relation(fields: [userId], references: [id])
+}
+
+model Entity {
+  id           String @id @default(uuid())
+  userId       String @unique
+  entityName   String
+  substation   String
+  ownerName    String
+  ownerEmail   String
+  ownerPhone   String
+
+  user         User @relation(fields: [userId], references: [id])
+}
+
+model AssociateManager {
+  id           String @id @default(uuid())
+  userId       String
+  name         String?
+  designation  String?
+  email        String?
+  phone        String?
+
+  user         User @relation(fields: [userId], references: [id])
+}
+
+model Meter {
+  id          String @id @default(uuid())
+  userId      String
+  meterNo     String
+  meterOwner  String
+
+  user        User @relation(fields: [userId], references: [id])
+
+  @@unique([meterNo, userId]) // prevent duplicate in same submission
+}
+
+model QCADetails {
+  id               String @id @default(uuid())
+  userId           String @unique
+  licenseNumber    String
+  managedStations  String? // can later normalize if needed
+
+  user             User @relation(fields: [userId], references: [id])
+}
+
+model RoleAssignment {
+  id         String @id @default(uuid())
+  userId     String @unique
+  role       String   // User / Admin / Coordinator
+  approverId String
+
+  user       User @relation(fields: [userId], references: [id])
+}
+
+model Approval {
+  id          String   @id @default(uuid())
+  userId      String
+  approverId  String
+  status      String   // Pending / Approved / Rejected
+  remarks     String?
+  createdAt   DateTime @default(now())
+
+  user        User @relation(fields: [userId], references: [id])
+}
