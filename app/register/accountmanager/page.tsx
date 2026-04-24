@@ -1,142 +1,197 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-export default function AccountManagerProfilePage() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+type FormData = {
+  fullname: string;
+  designation: string;
+  primaryemail: string;
+  alternateemail: string;
+  phonenumber: string;
+  alternatephonenumber: string;
+};
 
-  const onSubmit = (data: any) => {
-    console.log("Form Data:", data);
+type FormErrors = {
+  fullname?: string;
+  designation?: string;
+  primaryemail?: string;
+  phonenumber?: string;
+};
+
+export default function Page() {
+  const router = useRouter();
+
+  const [form, setForm] = useState<FormData>({
+    fullname: "",
+    designation: "",
+    primaryemail: "",
+    alternateemail: "",
+    phonenumber: "",
+    alternatephonenumber: "",
+  });
+
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const validate = () => {
+    const err: FormErrors = {};
+
+    if (!form.fullname) err.fullname = "Full name is required";
+    if (!form.designation) err.designation = "Designation is required";
+    if (!form.primaryemail) err.primaryemail = "Email is required";
+
+    if (!/^[0-9]{10}$/.test(form.phonenumber)) {
+      err.phonenumber = "Phone must be 10 digits";
+    }
+
+    setErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validate()) {
+      console.log("Step 1 Data:", form);
+      router.push("/next-page");
+    }
+  };
+
+  const isDisabled =
+    !form.fullname ||
+    !form.designation ||
+    !form.primaryemail ||
+    !form.phonenumber;
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-6 rounded-lg shadow-md w-full max-w-xl space-y-4"
-      >
-        <h1 className="text-2xl font-bold text-center">
-          Account Manager Profile
-        </h1>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md space-y-6">
+
+        {/* HEADER (UPDATED STEP TEXT) */}
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-800">
+            Account Manager Profile
+          </h1>
+          <p className="text-sm text-gray-500">
+            Step 2: Provide details of the primary account holder
+          </p>
+        </div>
 
         {/* Full Name */}
         <div>
-          <label className="block text-sm font-medium">Full Name *</label>
+          <label className="text-sm font-medium text-gray-700">
+            Full Name *
+          </label>
           <input
-            type="text"
-            className="w-full border p-2 rounded"
+            name="fullname"
+            value={form.fullname}
+            onChange={handleChange}
             placeholder="Enter full name"
-            {...register("fullName", {
-              required: "Full name is required",
-            })}
+            className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
-          {errors.fullName && (
-            <p className="text-red-500 text-sm">
-              {errors.fullName.message as string}
-            </p>
+          {errors.fullname && (
+            <p className="text-red-500 text-sm mt-1">{errors.fullname}</p>
           )}
         </div>
 
         {/* Designation */}
         <div>
-          <label className="block text-sm font-medium">Designation *</label>
+          <label className="text-sm font-medium text-gray-700">
+            Designation *
+          </label>
           <input
-            type="text"
-            className="w-full border p-2 rounded"
+            name="designation"
+            value={form.designation}
+            onChange={handleChange}
             placeholder="Enter designation"
-            {...register("designation", {
-              required: "Designation is required",
-            })}
+            className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
           {errors.designation && (
-            <p className="text-red-500 text-sm">
-              {errors.designation.message as string}
-            </p>
+            <p className="text-red-500 text-sm mt-1">{errors.designation}</p>
           )}
         </div>
 
-        {/* Email */}
+        {/* Primary Email */}
         <div>
-          <label className="block text-sm font-medium">Primary Email *</label>
+          <label className="text-sm font-medium text-gray-700">
+            Primary Email *
+          </label>
           <input
-            type="email"
-            className="w-full border p-2 rounded"
+            name="primaryemail"
+            value={form.primaryemail}
+            onChange={handleChange}
             placeholder="Enter email"
-            {...register("email", {
-              required: "Email is required",
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: "Invalid email",
-              },
-            })}
+            className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
-          {errors.email && (
-            <p className="text-red-500 text-sm">
-              {errors.email.message as string}
+          {errors.primaryemail && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.primaryemail}
             </p>
           )}
         </div>
 
-        {/* Alternate Email */}
+        {/* Alternate Email (NEW) */}
         <div>
-          <label className="block text-sm font-medium">
+          <label className="text-sm font-medium text-gray-700">
             Alternate Email
           </label>
           <input
-            type="email"
-            className="w-full border p-2 rounded"
-            placeholder="Optional"
-            {...register("altEmail")}
+            name="alternateemail"
+            value={form.alternateemail}
+            onChange={handleChange}
+            placeholder="Optional alternate email"
+            className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Phone */}
         <div>
-          <label className="block text-sm font-medium">Phone *</label>
+          <label className="text-sm font-medium text-gray-700">
+            Phone Number *
+          </label>
           <input
-            type="tel"
-            className="w-full border p-2 rounded"
+            name="phonenumber"
+            value={form.phonenumber}
+            onChange={handleChange}
             placeholder="10-digit number"
-            {...register("phone", {
-              required: "Phone is required",
-              pattern: {
-                value: /^[0-9]{10}$/,
-                message: "Enter valid 10-digit number",
-              },
-            })}
+            className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
-          {errors.phone && (
-            <p className="text-red-500 text-sm">
-              {errors.phone.message as string}
+          {errors.phonenumber && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.phonenumber}
             </p>
           )}
         </div>
 
-        {/* Alternate Phone */}
+        {/* Alternate Phone (NEW) */}
         <div>
-          <label className="block text-sm font-medium">
-            Alternate Phone
+          <label className="text-sm font-medium text-gray-700">
+            Alternate Phone Number
           </label>
           <input
-            type="tel"
-            className="w-full border p-2 rounded"
-            placeholder="Optional"
-            {...register("altPhone")}
+            name="alternatephonenumber"
+            value={form.alternatephonenumber}
+            onChange={handleChange}
+            placeholder="Optional alternate number"
+            className="w-full border rounded-lg p-2 mt-1 text-gray-800 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* Submit Button */}
+        {/* NEXT BUTTON */}
         <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          onClick={handleNext}
+          disabled={isDisabled}
+          className={`w-full py-2 rounded-lg text-white font-medium ${
+            isDisabled
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
-          Submit
+          Next
         </button>
-      </form>
+      </div>
     </div>
   );
 }
