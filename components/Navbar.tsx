@@ -11,8 +11,8 @@ export default function Navbar() {
         <Image
           src="/grid-img.jpg"   // ✅ your actual file name
           alt="Grid India Logo"
-          width={40}
-          height={40}
+          width={160}
+          height={20}
           className="cursor-pointer"
         />
       </Link>

@@ -9,7 +9,7 @@ export default function AssociateManagerPage() {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: unknown) => {
     console.log("Associate Manager Data:", data);
   };
 

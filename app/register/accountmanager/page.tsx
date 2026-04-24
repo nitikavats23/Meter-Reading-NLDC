@@ -139,7 +139,7 @@ export default function Page() {
           )}
         </div>
 
-        {/* Alternate Email (NEW) */}
+        {/* Alternate Email  */}
         <div>
           <label className="text-sm font-medium text-gray-700">
             Alternate Email
@@ -172,7 +172,7 @@ export default function Page() {
           )}
         </div>
 
-        {/* Alternate Phone (NEW) */}
+        {/* Alternate Phone  */}
         <div>
           <label className="text-sm font-medium text-gray-700">
             Alternate Phone Number
