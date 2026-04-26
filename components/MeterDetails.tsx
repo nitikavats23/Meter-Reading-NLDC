@@ -4,51 +4,39 @@ import { useState } from "react";
 import SectionCard from "./SectionCard";
 
 export default function MeterDetails() {
-  const [rows, setRows] = useState([{ meterNo: "", owner: "" }]);
+  const [rows, setRows] = useState([
+    { meterNo: "" },
+  ]);
 
   const addRow = () => {
-    setRows([...rows, { meterNo: "", owner: "" }]);
+    setRows([...rows, { meterNo: "" }]);
   };
 
   return (
-    <SectionCard title="Meter Details">
-      <table className="w-full border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border p-2">Meter Number</th>
-            <th className="border p-2">Meter Owner</th>
-          </tr>
-        </thead>
+    <div id="meterdetails">
+    <SectionCard title="Section E - Meter Details">
+      <div className="space-y-4">
 
-        <tbody>
-          {rows.map((row, index) => (
-            <tr key={index}>
-              <td className="border p-2">
-                <input
-                  type="text"
-                  className="w-full border p-2 rounded"
-                  placeholder="Enter Meter No"
-                />
-              </td>
+        {rows.map((row, index) => (
+          <div key={index}>
+            <input
+              className="w-full border p-3 rounded"
+              placeholder={`Meter Number ${
+                index + 1
+              }`}
+            />
+          </div>
+        ))}
 
-              <td className="border p-2">
-                <input
-                  type="text"
-                  className="w-full border p-2 rounded"
-                  placeholder="Enter Owner Name"
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <button
+          onClick={addRow}
+          className="bg-blue-700 text-white px-4 py-2 rounded"
+        >
+          + Add Meter
+        </button>
 
-      <button
-        onClick={addRow}
-        className="mt-4 bg-blue-700 text-white px-4 py-2 rounded"
-      >
-        + Add Meter
-      </button>
+      </div>
     </SectionCard>
+    </div>
   );
 }
