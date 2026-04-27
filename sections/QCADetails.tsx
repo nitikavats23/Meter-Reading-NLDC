@@ -1,25 +1,58 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import SectionCard from "@/components/SectionCard";
+import { FormDataType } from "@/types/form";
 
-export default function QCADetails() {
+/* ✅ Props */
+type Props = {
+  setFormData: React.Dispatch<
+    React.SetStateAction<FormDataType>
+  >;
+};
+
+export default function QCADetails({ setFormData }: Props) {
+  const [license, setLicense] = useState("");
+  const [stations, setStations] = useState("");
+
+  /* ✅ PUSH DATA TO PARENT */
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      qcaDetails: {
+        licenseNumber: license,
+        managedStations: stations,
+      },
+    }));
+  }, [license, stations, setFormData]);
+
   return (
     <div id="qcadetails">
-    <SectionCard title="Section F - QCA Details">
-      <div className="grid md:grid-cols-2 gap-5">
+      <SectionCard title="Section F - QCA Details">
+        <div className="grid md:grid-cols-2 gap-5">
 
-        <input
-          className="border p-3 rounded"
-          placeholder="QCA License Number"
-        />
+          {/* License Number */}
+          <div>
+            <label>QCA License Number *</label>
+            <input
+              className="w-full border p-3 rounded"
+              value={license}
+              onChange={(e) => setLicense(e.target.value)}
+            />
+          </div>
 
-        <input
-          className="border p-3 rounded"
-          placeholder="Managed Stations"
-        />
+          {/* Managed Stations */}
+          <div>
+            <label>Managed Stations *</label>
+            <input
+              className="w-full border p-3 rounded"
+              value={stations}
+              onChange={(e) => setStations(e.target.value)}
+            />
+          </div>
 
-      </div>
-    </SectionCard>
+        </div>
+      </SectionCard>
     </div>
   );
 }

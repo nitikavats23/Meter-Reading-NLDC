@@ -1,71 +1,132 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SectionCard from "@/components/SectionCard";
+import { FormDataType } from "@/types/form";
 
-export default function AccountManager() {
+/*  Props */
+type Props = {
+  setFormData: React.Dispatch<
+    React.SetStateAction<FormDataType>
+  >;
+};
+
+export default function AccountManager({ setFormData }: Props) {
   const [phone, setPhone] = useState("");
   const [altPhone, setAltPhone] = useState("");
+  const [primaryemail, setPrimaryemail] = useState("");
+  const [altemail, setAltemail] = useState("");
+  const [fullname, setFullname] = useState("");
+  const [designation, setDesignation] = useState("");
 
   const phoneValid = /^[6-9]\d{9}$/.test(phone);
   const altPhoneValid =
     altPhone === "" || /^[6-9]\d{9}$/.test(altPhone);
 
+  /* PUSH DATA TO PARENT */
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      accountManager: {
+        fullName: fullname,
+        designation,
+        email: primaryemail,
+        altEmail: altemail,
+        phone,
+        altPhone,
+      },
+    }));
+  }, [
+    fullname,
+    designation,
+    primaryemail,
+    altemail,
+    phone,
+    altPhone,
+    setFormData,
+  ]);
+
   return (
     <div id="accountmanager">
-     <SectionCard title="Section B - Account Manager">
-      <div className="grid md:grid-cols-2 gap-5">
+      <SectionCard title="Section B - Account Manager">
+        <div className="grid md:grid-cols-2 gap-5">
 
-        <input className="border p-3 rounded" placeholder="Full Name" />
-        <input className="border p-3 rounded" placeholder="Designation" />
+          {/* Full Name */}
+          <div>
+            <label>Full Name *</label>
+            <input
+              className="w-full border p-3 rounded"
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+            />
+          </div>
 
-        <input
-          type="email"
-          className="border p-3 rounded"
-          placeholder="Primary Email"
-        />
+          {/* Designation */}
+          <div>
+            <label>Designation *</label>
+            <input
+              className="w-full border p-3 rounded"
+              value={designation}
+              onChange={(e) => setDesignation(e.target.value)}
+            />
+          </div>
 
-        <input
-          type="email"
-          className="border p-3 rounded"
-          placeholder="Alternate Email"
-        />
+          {/* Primary Email */}
+          <div>
+            <label>Primary Email *</label>
+            <input
+              type="email"
+              className="w-full border p-3 rounded"
+              value={primaryemail}
+              onChange={(e) => setPrimaryemail(e.target.value)}
+            />
+          </div>
 
-        <div>
-          <input
-            className="w-full border p-3 rounded"
-            placeholder="Contact Number"
-            value={phone}
-            onChange={(e) =>
-              setPhone(e.target.value)
-            }
-          />
-          {phone && !phoneValid && (
-            <p className="text-red-500 text-sm">
-              10 digit valid mobile number
-            </p>
-          )}
+          {/* Alternate Email */}
+          <div>
+            <label>Alternate Email</label>
+            <input
+              type="email"
+              className="w-full border p-3 rounded"
+              value={altemail}
+              onChange={(e) => setAltemail(e.target.value)}
+            />
+          </div>
+
+          {/* Contact Number */}
+          <div>
+            <label>Contact Number *</label>
+            <input
+              className="w-full border p-3 rounded"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+
+            {phone && !phoneValid && (
+              <p className="text-red-500 text-sm">
+                10 digit valid mobile number
+              </p>
+            )}
+          </div>
+
+          {/* Alternate Contact */}
+          <div>
+            <label>Alternate Contact</label>
+            <input
+              className="w-full border p-3 rounded"
+              value={altPhone}
+              onChange={(e) => setAltPhone(e.target.value)}
+            />
+
+            {altPhone && !altPhoneValid && (
+              <p className="text-red-500 text-sm">
+                Invalid number
+              </p>
+            )}
+          </div>
+
         </div>
-
-        <div>
-          <input
-            className="w-full border p-3 rounded"
-            placeholder="Alternate Contact"
-            value={altPhone}
-            onChange={(e) =>
-              setAltPhone(e.target.value)
-            }
-          />
-          {altPhone && !altPhoneValid && (
-            <p className="text-red-500 text-sm">
-              Invalid number
-            </p>
-          )}
-        </div>
-
-      </div>
-    
-    </SectionCard>
+      </SectionCard>
     </div>
   );
 }

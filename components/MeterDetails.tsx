@@ -1,42 +1,99 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SectionCard from "./SectionCard";
+import { FormDataType } from "@/types/form";
 
-export default function MeterDetails() {
+/* ✅ Props */
+type Props = {
+  setFormData: React.Dispatch<
+    React.SetStateAction<FormDataType>
+  >;
+};
+
+export default function MeterDetails({ setFormData }: Props) {
   const [rows, setRows] = useState([
-    { meterNo: "" },
+    { meterNo: "", meterOwner: "" },
   ]);
 
-  const addRow = () => {
-    setRows([...rows, { meterNo: "" }]);
+  /* ✅ Handle input change */
+  const handleChange = (
+    index: number,
+    field: "meterNo" | "meterOwner",
+    value: string
+  ) => {
+    const updated = [...rows];
+    updated[index][field] = value;
+    setRows(updated);
   };
+
+  /* ✅ Add new row */
+  const addRow = () => {
+    setRows([...rows, { meterNo: "", meterOwner: "" }]);
+  };
+
+  /* ✅ PUSH TO PARENT */
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      meters: rows,
+    }));
+  }, [rows, setFormData]);
 
   return (
     <div id="meterdetails">
-    <SectionCard title="Section E - Meter Details">
-      <div className="space-y-4">
+      <SectionCard title="Section E - Meter Details">
+        <div className="space-y-4">
 
-        {rows.map((row, index) => (
-          <div key={index}>
-            <input
-              className="w-full border p-3 rounded"
-              placeholder={`Meter Number ${
-                index + 1
-              }`}
-            />
-          </div>
-        ))}
+          {rows.map((row, index) => (
+            <div key={index} className="grid md:grid-cols-2 gap-4">
 
-        <button
-          onClick={addRow}
-          className="bg-blue-700 text-white px-4 py-2 rounded"
-        >
-          + Add Meter
-        </button>
+              {/* Meter No */}
+              <div>
+                <label>Meter No. {index + 1} *</label>
+                <input
+                  className="w-full border p-3 rounded"
+                  value={row.meterNo}
+                  onChange={(e) =>
+                    handleChange(
+                      index,
+                      "meterNo",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
 
-      </div>
-    </SectionCard>
+              {/* Meter Owner */}
+              <div>
+                <label>Meter Owner</label>
+                <input
+                  className="w-full border p-3 rounded"
+                  value={row.meterOwner}
+                  onChange={(e) =>
+                    handleChange(
+                      index,
+                      "meterOwner",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+
+            </div>
+          ))}
+
+          {/* Add Button */}
+          <button
+            type="button"
+            onClick={addRow}
+            className="bg-blue-700 text-white px-4 py-2 rounded"
+          >
+            + Add Meter
+          </button>
+
+        </div>
+      </SectionCard>
     </div>
   );
 }

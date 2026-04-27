@@ -183,12 +183,12 @@ export type UserWhereInput = {
   password?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   profile?: Prisma.XOR<Prisma.AccountManagerProfileNullableScalarRelationFilter, Prisma.AccountManagerProfileWhereInput> | null
+  approvals?: Prisma.ApprovalListRelationFilter
+  associateManagers?: Prisma.AssociateManagerListRelationFilter
   entity?: Prisma.XOR<Prisma.EntityNullableScalarRelationFilter, Prisma.EntityWhereInput> | null
   meters?: Prisma.MeterListRelationFilter
   qcaDetails?: Prisma.XOR<Prisma.QCADetailsNullableScalarRelationFilter, Prisma.QCADetailsWhereInput> | null
   role?: Prisma.XOR<Prisma.RoleAssignmentNullableScalarRelationFilter, Prisma.RoleAssignmentWhereInput> | null
-  associateManagers?: Prisma.AssociateManagerListRelationFilter
-  approvals?: Prisma.ApprovalListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -198,12 +198,12 @@ export type UserOrderByWithRelationInput = {
   password?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   profile?: Prisma.AccountManagerProfileOrderByWithRelationInput
+  approvals?: Prisma.ApprovalOrderByRelationAggregateInput
+  associateManagers?: Prisma.AssociateManagerOrderByRelationAggregateInput
   entity?: Prisma.EntityOrderByWithRelationInput
   meters?: Prisma.MeterOrderByRelationAggregateInput
   qcaDetails?: Prisma.QCADetailsOrderByWithRelationInput
   role?: Prisma.RoleAssignmentOrderByWithRelationInput
-  associateManagers?: Prisma.AssociateManagerOrderByRelationAggregateInput
-  approvals?: Prisma.ApprovalOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -216,12 +216,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   password?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   profile?: Prisma.XOR<Prisma.AccountManagerProfileNullableScalarRelationFilter, Prisma.AccountManagerProfileWhereInput> | null
+  approvals?: Prisma.ApprovalListRelationFilter
+  associateManagers?: Prisma.AssociateManagerListRelationFilter
   entity?: Prisma.XOR<Prisma.EntityNullableScalarRelationFilter, Prisma.EntityWhereInput> | null
   meters?: Prisma.MeterListRelationFilter
   qcaDetails?: Prisma.XOR<Prisma.QCADetailsNullableScalarRelationFilter, Prisma.QCADetailsWhereInput> | null
   role?: Prisma.XOR<Prisma.RoleAssignmentNullableScalarRelationFilter, Prisma.RoleAssignmentWhereInput> | null
-  associateManagers?: Prisma.AssociateManagerListRelationFilter
-  approvals?: Prisma.ApprovalListRelationFilter
 }, "id" | "username">
 
 export type UserOrderByWithAggregationInput = {
@@ -253,12 +253,12 @@ export type UserCreateInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -268,12 +268,12 @@ export type UserUncheckedCreateInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileUncheckedCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityUncheckedCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterUncheckedCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsUncheckedCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentUncheckedCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -283,12 +283,12 @@ export type UserUpdateInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -298,12 +298,12 @@ export type UserUncheckedUpdateInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUncheckedUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUncheckedUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUncheckedUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUncheckedUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUncheckedUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -471,12 +471,12 @@ export type UserCreateWithoutProfileInput = {
   username: string
   password: string
   createdAt?: Date | string
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProfileInput = {
@@ -485,12 +485,12 @@ export type UserUncheckedCreateWithoutProfileInput = {
   username: string
   password: string
   createdAt?: Date | string
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityUncheckedCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterUncheckedCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsUncheckedCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentUncheckedCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProfileInput = {
@@ -515,12 +515,12 @@ export type UserUpdateWithoutProfileInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProfileInput = {
@@ -529,12 +529,12 @@ export type UserUncheckedUpdateWithoutProfileInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUncheckedUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUncheckedUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUncheckedUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUncheckedUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEntityInput = {
@@ -544,11 +544,11 @@ export type UserCreateWithoutEntityInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
   meters?: Prisma.MeterCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEntityInput = {
@@ -558,11 +558,11 @@ export type UserUncheckedCreateWithoutEntityInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileUncheckedCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
   meters?: Prisma.MeterUncheckedCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsUncheckedCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentUncheckedCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEntityInput = {
@@ -588,11 +588,11 @@ export type UserUpdateWithoutEntityInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
   meters?: Prisma.MeterUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEntityInput = {
@@ -602,11 +602,11 @@ export type UserUncheckedUpdateWithoutEntityInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUncheckedUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
   meters?: Prisma.MeterUncheckedUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUncheckedUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUncheckedUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAssociateManagersInput = {
@@ -616,11 +616,11 @@ export type UserCreateWithoutAssociateManagersInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentCreateNestedOneWithoutUserInput
-  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAssociateManagersInput = {
@@ -630,11 +630,11 @@ export type UserUncheckedCreateWithoutAssociateManagersInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileUncheckedCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityUncheckedCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterUncheckedCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsUncheckedCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentUncheckedCreateNestedOneWithoutUserInput
-  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAssociateManagersInput = {
@@ -660,11 +660,11 @@ export type UserUpdateWithoutAssociateManagersInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUpdateOneWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssociateManagersInput = {
@@ -674,11 +674,11 @@ export type UserUncheckedUpdateWithoutAssociateManagersInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUncheckedUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUncheckedUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUncheckedUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUncheckedUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUncheckedUpdateOneWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMetersInput = {
@@ -688,11 +688,11 @@ export type UserCreateWithoutMetersInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityCreateNestedOneWithoutUserInput
   qcaDetails?: Prisma.QCADetailsCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMetersInput = {
@@ -702,11 +702,11 @@ export type UserUncheckedCreateWithoutMetersInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileUncheckedCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityUncheckedCreateNestedOneWithoutUserInput
   qcaDetails?: Prisma.QCADetailsUncheckedCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentUncheckedCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMetersInput = {
@@ -732,11 +732,11 @@ export type UserUpdateWithoutMetersInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUpdateOneWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMetersInput = {
@@ -746,11 +746,11 @@ export type UserUncheckedUpdateWithoutMetersInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUncheckedUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUncheckedUpdateOneWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUncheckedUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUncheckedUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutQcaDetailsInput = {
@@ -760,11 +760,11 @@ export type UserCreateWithoutQcaDetailsInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterCreateNestedManyWithoutUserInput
   role?: Prisma.RoleAssignmentCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutQcaDetailsInput = {
@@ -774,11 +774,11 @@ export type UserUncheckedCreateWithoutQcaDetailsInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileUncheckedCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityUncheckedCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterUncheckedCreateNestedManyWithoutUserInput
   role?: Prisma.RoleAssignmentUncheckedCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutQcaDetailsInput = {
@@ -804,11 +804,11 @@ export type UserUpdateWithoutQcaDetailsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutQcaDetailsInput = {
@@ -818,11 +818,11 @@ export type UserUncheckedUpdateWithoutQcaDetailsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUncheckedUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUncheckedUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUncheckedUpdateManyWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUncheckedUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRoleInput = {
@@ -832,11 +832,11 @@ export type UserCreateWithoutRoleInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRoleInput = {
@@ -846,11 +846,11 @@ export type UserUncheckedCreateWithoutRoleInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileUncheckedCreateNestedOneWithoutUserInput
+  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityUncheckedCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterUncheckedCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsUncheckedCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
-  approvals?: Prisma.ApprovalUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRoleInput = {
@@ -876,11 +876,11 @@ export type UserUpdateWithoutRoleInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoleInput = {
@@ -890,11 +890,11 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUncheckedUpdateOneWithoutUserNestedInput
+  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUncheckedUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUncheckedUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUncheckedUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
-  approvals?: Prisma.ApprovalUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutApprovalsInput = {
@@ -904,11 +904,11 @@ export type UserCreateWithoutApprovalsInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileCreateNestedOneWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutApprovalsInput = {
@@ -918,11 +918,11 @@ export type UserUncheckedCreateWithoutApprovalsInput = {
   password: string
   createdAt?: Date | string
   profile?: Prisma.AccountManagerProfileUncheckedCreateNestedOneWithoutUserInput
+  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
   entity?: Prisma.EntityUncheckedCreateNestedOneWithoutUserInput
   meters?: Prisma.MeterUncheckedCreateNestedManyWithoutUserInput
   qcaDetails?: Prisma.QCADetailsUncheckedCreateNestedOneWithoutUserInput
   role?: Prisma.RoleAssignmentUncheckedCreateNestedOneWithoutUserInput
-  associateManagers?: Prisma.AssociateManagerUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutApprovalsInput = {
@@ -948,11 +948,11 @@ export type UserUpdateWithoutApprovalsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUpdateOneWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApprovalsInput = {
@@ -962,11 +962,11 @@ export type UserUncheckedUpdateWithoutApprovalsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.AccountManagerProfileUncheckedUpdateOneWithoutUserNestedInput
+  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
   entity?: Prisma.EntityUncheckedUpdateOneWithoutUserNestedInput
   meters?: Prisma.MeterUncheckedUpdateManyWithoutUserNestedInput
   qcaDetails?: Prisma.QCADetailsUncheckedUpdateOneWithoutUserNestedInput
   role?: Prisma.RoleAssignmentUncheckedUpdateOneWithoutUserNestedInput
-  associateManagers?: Prisma.AssociateManagerUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -975,15 +975,15 @@ export type UserUncheckedUpdateWithoutApprovalsInput = {
  */
 
 export type UserCountOutputType = {
-  meters: number
-  associateManagers: number
   approvals: number
+  associateManagers: number
+  meters: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  meters?: boolean | UserCountOutputTypeCountMetersArgs
-  associateManagers?: boolean | UserCountOutputTypeCountAssociateManagersArgs
   approvals?: boolean | UserCountOutputTypeCountApprovalsArgs
+  associateManagers?: boolean | UserCountOutputTypeCountAssociateManagersArgs
+  meters?: boolean | UserCountOutputTypeCountMetersArgs
 }
 
 /**
@@ -999,8 +999,8 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountMetersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.MeterWhereInput
+export type UserCountOutputTypeCountApprovalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalWhereInput
 }
 
 /**
@@ -1013,8 +1013,8 @@ export type UserCountOutputTypeCountAssociateManagersArgs<ExtArgs extends runtim
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountApprovalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ApprovalWhereInput
+export type UserCountOutputTypeCountMetersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MeterWhereInput
 }
 
 
@@ -1025,12 +1025,12 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   password?: boolean
   createdAt?: boolean
   profile?: boolean | Prisma.User$profileArgs<ExtArgs>
+  approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
+  associateManagers?: boolean | Prisma.User$associateManagersArgs<ExtArgs>
   entity?: boolean | Prisma.User$entityArgs<ExtArgs>
   meters?: boolean | Prisma.User$metersArgs<ExtArgs>
   qcaDetails?: boolean | Prisma.User$qcaDetailsArgs<ExtArgs>
   role?: boolean | Prisma.User$roleArgs<ExtArgs>
-  associateManagers?: boolean | Prisma.User$associateManagersArgs<ExtArgs>
-  approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1061,12 +1061,12 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userType" | "username" | "password" | "createdAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.User$profileArgs<ExtArgs>
+  approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
+  associateManagers?: boolean | Prisma.User$associateManagersArgs<ExtArgs>
   entity?: boolean | Prisma.User$entityArgs<ExtArgs>
   meters?: boolean | Prisma.User$metersArgs<ExtArgs>
   qcaDetails?: boolean | Prisma.User$qcaDetailsArgs<ExtArgs>
   role?: boolean | Prisma.User$roleArgs<ExtArgs>
-  associateManagers?: boolean | Prisma.User$associateManagersArgs<ExtArgs>
-  approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1076,12 +1076,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     profile: Prisma.$AccountManagerProfilePayload<ExtArgs> | null
+    approvals: Prisma.$ApprovalPayload<ExtArgs>[]
+    associateManagers: Prisma.$AssociateManagerPayload<ExtArgs>[]
     entity: Prisma.$EntityPayload<ExtArgs> | null
     meters: Prisma.$MeterPayload<ExtArgs>[]
     qcaDetails: Prisma.$QCADetailsPayload<ExtArgs> | null
     role: Prisma.$RoleAssignmentPayload<ExtArgs> | null
-    associateManagers: Prisma.$AssociateManagerPayload<ExtArgs>[]
-    approvals: Prisma.$ApprovalPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1484,12 +1484,12 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   profile<T extends Prisma.User$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$profileArgs<ExtArgs>>): Prisma.Prisma__AccountManagerProfileClient<runtime.Types.Result.GetResult<Prisma.$AccountManagerProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  approvals<T extends Prisma.User$approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  associateManagers<T extends Prisma.User$associateManagersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$associateManagersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssociateManagerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   entity<T extends Prisma.User$entityArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$entityArgs<ExtArgs>>): Prisma.Prisma__EntityClient<runtime.Types.Result.GetResult<Prisma.$EntityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   meters<T extends Prisma.User$metersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$metersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MeterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   qcaDetails<T extends Prisma.User$qcaDetailsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$qcaDetailsArgs<ExtArgs>>): Prisma.Prisma__QCADetailsClient<runtime.Types.Result.GetResult<Prisma.$QCADetailsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   role<T extends Prisma.User$roleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$roleArgs<ExtArgs>>): Prisma.Prisma__RoleAssignmentClient<runtime.Types.Result.GetResult<Prisma.$RoleAssignmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  associateManagers<T extends Prisma.User$associateManagersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$associateManagersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssociateManagerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  approvals<T extends Prisma.User$approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1936,6 +1936,54 @@ export type User$profileArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 }
 
 /**
+ * User.approvals
+ */
+export type User$approvalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Approval
+   */
+  select?: Prisma.ApprovalSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Approval
+   */
+  omit?: Prisma.ApprovalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApprovalInclude<ExtArgs> | null
+  where?: Prisma.ApprovalWhereInput
+  orderBy?: Prisma.ApprovalOrderByWithRelationInput | Prisma.ApprovalOrderByWithRelationInput[]
+  cursor?: Prisma.ApprovalWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApprovalScalarFieldEnum | Prisma.ApprovalScalarFieldEnum[]
+}
+
+/**
+ * User.associateManagers
+ */
+export type User$associateManagersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AssociateManager
+   */
+  select?: Prisma.AssociateManagerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AssociateManager
+   */
+  omit?: Prisma.AssociateManagerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AssociateManagerInclude<ExtArgs> | null
+  where?: Prisma.AssociateManagerWhereInput
+  orderBy?: Prisma.AssociateManagerOrderByWithRelationInput | Prisma.AssociateManagerOrderByWithRelationInput[]
+  cursor?: Prisma.AssociateManagerWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AssociateManagerScalarFieldEnum | Prisma.AssociateManagerScalarFieldEnum[]
+}
+
+/**
  * User.entity
  */
 export type User$entityArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2014,54 +2062,6 @@ export type User$roleArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs 
    */
   include?: Prisma.RoleAssignmentInclude<ExtArgs> | null
   where?: Prisma.RoleAssignmentWhereInput
-}
-
-/**
- * User.associateManagers
- */
-export type User$associateManagersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the AssociateManager
-   */
-  select?: Prisma.AssociateManagerSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the AssociateManager
-   */
-  omit?: Prisma.AssociateManagerOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.AssociateManagerInclude<ExtArgs> | null
-  where?: Prisma.AssociateManagerWhereInput
-  orderBy?: Prisma.AssociateManagerOrderByWithRelationInput | Prisma.AssociateManagerOrderByWithRelationInput[]
-  cursor?: Prisma.AssociateManagerWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.AssociateManagerScalarFieldEnum | Prisma.AssociateManagerScalarFieldEnum[]
-}
-
-/**
- * User.approvals
- */
-export type User$approvalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Approval
-   */
-  select?: Prisma.ApprovalSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Approval
-   */
-  omit?: Prisma.ApprovalOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ApprovalInclude<ExtArgs> | null
-  where?: Prisma.ApprovalWhereInput
-  orderBy?: Prisma.ApprovalOrderByWithRelationInput | Prisma.ApprovalOrderByWithRelationInput[]
-  cursor?: Prisma.ApprovalWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.ApprovalScalarFieldEnum | Prisma.ApprovalScalarFieldEnum[]
 }
 
 /**
