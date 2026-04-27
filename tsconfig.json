@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "paths": {
+    "@generated/*": ["./src/generated/*"]
+    },
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
