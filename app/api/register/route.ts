@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 
 /* TYPES */
 type RequestBody = {
@@ -48,11 +49,11 @@ export async function POST(req: Request) {
   try {
     const body: RequestBody = await req.json();
 
-    /* ===== VALIDATION ===== */
+    /* ===== 1. VALIDATION ===== */
     if (
-      !body.credentials.username ||
-      !body.credentials.password ||
-      !body.credentials.userType
+      !body.credentials?.username ||
+      !body.credentials?.password ||
+      !body.credentials?.userType
     ) {
       return NextResponse.json(
         { error: "Missing required credentials" },
@@ -60,15 +61,12 @@ export async function POST(req: Request) {
       );
     }
 
-    /* ===== HASH PASSWORD ===== */
-    const hashedPassword = await bcrypt.hash(
-      body.credentials.password,
-      10
-    );
+    /* ===== 2. HASH PASSWORD ===== */
+    const hashedPassword = await bcrypt.hash(body.credentials.password, 10);
 
+    /* ===== 3. TRANSACTION ===== */
     const result = await prisma.$transaction(async (tx) => {
-
-      /* ===== 1. USER ===== */
+      // Create User
       const user = await tx.user.create({
         data: {
           userType: body.credentials.userType,
@@ -79,22 +77,22 @@ export async function POST(req: Request) {
 
       const userId = user.id;
 
-      /* ===== 2. ACCOUNT MANAGER ===== */
+      // Account Manager Profile
       if (body.accountManager) {
         await tx.accountManagerProfile.create({
           data: { userId, ...body.accountManager },
         });
       }
 
-      /* ===== 3. ENTITY ===== */
+      // Entity
       if (body.entity) {
         await tx.entity.create({
           data: { userId, ...body.entity },
         });
       }
 
-      /* ===== 4. ASSOCIATE MANAGERS ===== */
-      if (body.associateManagers?.length) {
+      // Associate Managers
+      if (body.associateManagers && body.associateManagers.length > 0) {
         await tx.associateManager.createMany({
           data: body.associateManagers.map((am) => ({
             userId,
@@ -106,28 +104,31 @@ export async function POST(req: Request) {
         });
       }
 
-      /* ===== 5. METERS ===== */
-     if (body.meters?.length) {
-  await tx.meter.createMany({
-    data: body.meters
-      .filter((m) => m.meterNo && m.meterNo.trim() !== "") // 🔥 FIX
-      .map((m) => ({
-        userId,
-        meterNo: m.meterNo.trim(),
-        meterOwner: m.meterOwner ?? "",
-      })),
-    skipDuplicates: true,
-  });
-}
+      // Meters
+      if (body.meters && body.meters.length > 0) {
+        const validMeters = body.meters.filter(
+          (m) => m.meterNo && m.meterNo.trim() !== ""
+        );
+        if (validMeters.length > 0) {
+          await tx.meter.createMany({
+            data: validMeters.map((m) => ({
+              userId,
+              meterNo: m.meterNo.trim(),
+              meterOwner: m.meterOwner ?? "",
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
 
-      /* ===== 6. QCA DETAILS ===== */
-  if (body.qcaDetails) {
-  await tx.qCADetails.create({
-    data: { userId, ...body.qcaDetails },
-  });
-}
+      // QCA Details
+      if (body.qcaDetails) {
+        await tx.qCADetails.create({
+          data: { userId, ...body.qcaDetails },
+        });
+      }
 
-      /* ===== 7. ROLE ASSIGNMENT ===== */
+      // Role Assignment
       if (body.roleAssignment) {
         await tx.roleAssignment.create({
           data: {
@@ -138,13 +139,11 @@ export async function POST(req: Request) {
         });
       }
 
-      /* ===== 8. APPROVAL ===== */
+      // Approval — always created
       await tx.approval.create({
         data: {
           userId,
-          approverId:
-            body.roleAssignment?.approverId ||
-            "COORDINATOR_ID",
+          approverId: body.roleAssignment?.approverId ?? "PENDING_COORDINATOR",
           status: "Pending",
           remarks: "",
         },
@@ -153,32 +152,39 @@ export async function POST(req: Request) {
       return user;
     });
 
-    return NextResponse.json({
-      message: "Registration submitted for approval",
-      user: result,
-    });
+    return NextResponse.json(
+      { message: "Registration successful", userId: result.id },
+      { status: 201 }
+    );
 
   } catch (error: unknown) {
-    /* ===== HANDLE UNIQUE ERROR ===== */
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "P2002"
-    ) {
+    console.error("Registration Error:", error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return NextResponse.json(
+          { error: "Username or email already exists" },
+          { status: 409 }
+        );
+      }
+    }
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
       return NextResponse.json(
-        { error: "Username already exists" },
-        { status: 400 }
+        { error: "Database connection failed. Check your DATABASE_URL in .env" },
+        { status: 503 }
+      );
+    }
+
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
       );
     }
 
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong",
-      },
+      { error: "An unexpected error occurred" },
       { status: 500 }
     );
   }
