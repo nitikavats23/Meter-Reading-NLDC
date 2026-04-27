@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import SectionCard from "@/components/SectionCard";
 import { FormDataType } from "@/types/form";
 
-/*  Props */
+/* ✅ Props Typing */
 type Props = {
   setFormData: React.Dispatch<
     React.SetStateAction<FormDataType>
@@ -23,7 +23,7 @@ export default function AccountManager({ setFormData }: Props) {
   const altPhoneValid =
     altPhone === "" || /^[6-9]\d{9}$/.test(altPhone);
 
-  /* PUSH DATA TO PARENT */
+  /* ✅ PUSH DATA TO PARENT */
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
@@ -53,9 +53,10 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Full Name */}
           <div>
-            <label>Full Name *</label>
+            <label className="block mb-1 font-medium">Full Name *</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="Enter full name"
               value={fullname}
               onChange={(e) => setFullname(e.target.value)}
             />
@@ -63,9 +64,10 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Designation */}
           <div>
-            <label>Designation *</label>
+            <label className="block mb-1 font-medium">Designation *</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="e.g. Project Manager"
               value={designation}
               onChange={(e) => setDesignation(e.target.value)}
             />
@@ -73,10 +75,11 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Primary Email */}
           <div>
-            <label>Primary Email *</label>
+            <label className="block mb-1 font-medium">Primary Email *</label>
             <input
               type="email"
               className="w-full border p-3 rounded"
+              placeholder="example@domain.com"
               value={primaryemail}
               onChange={(e) => setPrimaryemail(e.target.value)}
             />
@@ -84,10 +87,11 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Alternate Email */}
           <div>
-            <label>Alternate Email</label>
+            <label className="block mb-1 font-medium">Alternate Email</label>
             <input
               type="email"
               className="w-full border p-3 rounded"
+              placeholder="secondary@domain.com"
               value={altemail}
               onChange={(e) => setAltemail(e.target.value)}
             />
@@ -95,15 +99,16 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Contact Number */}
           <div>
-            <label>Contact Number *</label>
+            <label className="block mb-1 font-medium">Contact Number *</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="10-digit mobile number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
 
             {phone && !phoneValid && (
-              <p className="text-red-500 text-sm">
+              <p className="text-red-500 text-sm mt-1">
                 10 digit valid mobile number
               </p>
             )}
@@ -111,15 +116,16 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Alternate Contact */}
           <div>
-            <label>Alternate Contact</label>
+            <label className="block mb-1 font-medium">Alternate Contact</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="Optional contact number"
               value={altPhone}
               onChange={(e) => setAltPhone(e.target.value)}
             />
 
             {altPhone && !altPhoneValid && (
-              <p className="text-red-500 text-sm">
+              <p className="text-red-500 text-sm mt-1">
                 Invalid number
               </p>
             )}

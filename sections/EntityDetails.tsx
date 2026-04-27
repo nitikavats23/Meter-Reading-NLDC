@@ -48,9 +48,10 @@ export default function EntityDetails({ setFormData }: Props) {
 
           {/* Entity Name */}
           <div>
-            <label>Entity Name *</label>
+            <label className="block mb-1 font-medium">Entity Name *</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="Enter Company or Entity Name" // Updated placeholder
               value={entityName}
               onChange={(e) => setEntityName(e.target.value)}
             />
@@ -58,9 +59,10 @@ export default function EntityDetails({ setFormData }: Props) {
 
           {/* Substation */}
           <div>
-            <label>Substation *</label>
+            <label className="block mb-1 font-medium">Substation *</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="Enter Substation Name or ID" // Updated placeholder
               value={substation}
               onChange={(e) => setSubstation(e.target.value)}
             />
@@ -68,9 +70,10 @@ export default function EntityDetails({ setFormData }: Props) {
 
           {/* Owner Name */}
           <div>
-            <label>Entity Owner *</label>
+            <label className="block mb-1 font-medium">Entity Owner *</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="Full Name of the Owner" // Updated placeholder
               value={ownerName}
               onChange={(e) => setOwnerName(e.target.value)}
             />
@@ -78,10 +81,11 @@ export default function EntityDetails({ setFormData }: Props) {
 
           {/* Owner Email */}
           <div>
-            <label>Owner Email *</label>
+            <label className="block mb-1 font-medium">Owner Email *</label>
             <input
               type="email"
               className="w-full border p-3 rounded"
+              placeholder="owner.email@example.com" // Updated placeholder
               value={ownerEmail}
               onChange={(e) => setOwnerEmail(e.target.value)}
             />
@@ -89,16 +93,17 @@ export default function EntityDetails({ setFormData }: Props) {
 
           {/* Owner Contact */}
           <div>
-            <label>Owner Contact *</label>
+            <label className="block mb-1 font-medium">Owner Contact *</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="e.g. 9876543210" // Example placeholder
               value={ownerPhone}
               onChange={(e) => setOwnerPhone(e.target.value)}
             />
 
             {ownerPhone && !phoneValid && (
-              <p className="text-red-500 text-sm">
-                10 digit valid number
+              <p className="text-red-500 text-sm mt-1">
+                10 digit valid mobile number
               </p>
             )}
           </div>

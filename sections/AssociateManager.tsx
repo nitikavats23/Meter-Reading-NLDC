@@ -38,15 +38,17 @@ export default function AssociateManager({ setFormData }: Props) {
   return (
     <div id="associatemanager">
 
-      <SectionCard title="Section D - Associate Manager">
+      {/* Heading mein bracket mein optional add kar diya hai */}
+      <SectionCard title="Section D - Associate Manager (Optional)">
 
         <div className="grid md:grid-cols-2 gap-5">
 
           {/* Full Name */}
           <div>
-            <label>Associate Full Name *</label>
+            <label className="block mb-1 font-medium">Associate Full Name</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="Enter associate's full name"
               value={fullname}
               onChange={(e) => setFullname(e.target.value)}
             />
@@ -54,9 +56,10 @@ export default function AssociateManager({ setFormData }: Props) {
 
           {/* Designation */}
           <div>
-            <label>Designation *</label>
+            <label className="block mb-1 font-medium">Designation</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="e.g. Assistant Manager"
               value={designation}
               onChange={(e) => setDesignation(e.target.value)}
             />
@@ -64,10 +67,11 @@ export default function AssociateManager({ setFormData }: Props) {
 
           {/* Email */}
           <div>
-            <label>Associate Email *</label>
+            <label className="block mb-1 font-medium">Associate Email</label>
             <input
               type="email"
               className="w-full border p-3 rounded"
+              placeholder="associate@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -75,15 +79,16 @@ export default function AssociateManager({ setFormData }: Props) {
 
           {/* Contact */}
           <div>
-            <label>Associate Contact *</label>
+            <label className="block mb-1 font-medium">Associate Contact</label>
             <input
               className="w-full border p-3 rounded"
+              placeholder="e.g. 9876543210"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
 
             {phone && !phoneValid && (
-              <p className="text-red-500 text-sm">
+              <p className="text-red-500 text-sm mt-1">
                 Invalid mobile number
               </p>
             )}
