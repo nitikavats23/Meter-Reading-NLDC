@@ -89,7 +89,14 @@ model Approval {
   id         String   @id @default(uuid())
   userId     String
   approverId String
-  status     String
+  status     String   @default("Pending")
+  // Possible values:
+  // "Pending"             → just registered, waiting for coordinator
+  // "CoordinatorApproved" → coordinator approved, waiting for admin
+  // "CoordinatorRejected" → coordinator rejected
+  // "AdminApproved"       → admin approved, waiting for activation
+  // "AdminRejected"       → admin rejected
+  // "Activated"           → fully active
   remarks    String?
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id])

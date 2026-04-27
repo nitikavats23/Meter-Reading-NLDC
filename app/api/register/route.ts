@@ -48,6 +48,13 @@ type RequestBody = {
 export async function POST(req: Request) {
   try {
     const body: RequestBody = await req.json();
+      console.log("=== REGISTER API HIT ===")
+    console.log("Body received:", JSON.stringify(body, null, 2))
+
+    // Test DB connection first
+    console.log("Testing DB connection...")
+    await prisma.$connect()
+    console.log("DB connected successfully!")
 
     /* ===== 1. VALIDATION ===== */
     if (
@@ -120,13 +127,23 @@ export async function POST(req: Request) {
           });
         }
       }
+      // QCA Details - only create if userType is QCA and licenseNumber exists
+      if (
+  body.credentials.userType === "QCA" &&
+  body.qcaDetails &&
+  body.qcaDetails.licenseNumber &&
+  body.qcaDetails.licenseNumber.trim() !== ""
+) {
+  await tx.qCADetails.create({
+    data: {
+      userId,
+      licenseNumber: body.qcaDetails.licenseNumber.trim(),
+      managedStations: body.qcaDetails.managedStations ?? "",
+    },
+  });
+}
 
-      // QCA Details
-      if (body.qcaDetails) {
-        await tx.qCADetails.create({
-          data: { userId, ...body.qcaDetails },
-        });
-      }
+      
 
       // Role Assignment
       if (body.roleAssignment) {
