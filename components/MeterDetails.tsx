@@ -46,13 +46,14 @@ export default function MeterDetails({ setFormData }: Props) {
         <div className="space-y-4">
 
           {rows.map((row, index) => (
-            <div key={index} className="grid md:grid-cols-2 gap-4">
+            <div key={index} className="grid md:grid-cols-2 gap-4 border-b pb-4 last:border-0">
 
               {/* Meter No */}
               <div>
-                <label>Meter No. {index + 1} *</label>
+                <label className="block mb-1 font-medium">Meter No. {index + 1} *</label>
                 <input
                   className="w-full border p-3 rounded"
+                  placeholder="Enter meter number (e.g. MTR001)"
                   value={row.meterNo}
                   onChange={(e) =>
                     handleChange(
@@ -66,9 +67,10 @@ export default function MeterDetails({ setFormData }: Props) {
 
               {/* Meter Owner */}
               <div>
-                <label>Meter Owner</label>
+                <label className="block mb-1 font-medium">Meter Owner</label>
                 <input
                   className="w-full border p-3 rounded"
+                  placeholder="Enter name of meter owner"
                   value={row.meterOwner}
                   onChange={(e) =>
                     handleChange(
@@ -84,13 +86,15 @@ export default function MeterDetails({ setFormData }: Props) {
           ))}
 
           {/* Add Button */}
-          <button
-            type="button"
-            onClick={addRow}
-            className="bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            + Add Meter
-          </button>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={addRow}
+              className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded transition-colors"
+            >
+              + Add Meter
+            </button>
+          </div>
 
         </div>
       </SectionCard>
