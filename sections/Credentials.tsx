@@ -6,7 +6,6 @@ import { FormDataType } from "@/types/form";
 type Props = { setFormData: React.Dispatch<React.SetStateAction<FormDataType>>; };
 
 export default function Credentials({ setFormData }: Props) {
-  const [userType, setUserType] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -14,36 +13,66 @@ export default function Credentials({ setFormData }: Props) {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      credentials: { userType, username, password },
+      credentials: { 
+        ...(prev.credentials as any), 
+        username, 
+        password 
+      },
     }));
-  }, [userType, username, password, setFormData]);
+  }, [username, password, setFormData]); 
 
   return (
-    <SectionCard title="Section A - Credentials">
-      <div className="grid md:grid-cols-2 gap-5">
-        <div>
-          <label className="block mb-1">User Type *</label>
-          <select className="w-full border p-3 rounded" value={userType} onChange={(e) => setUserType(e.target.value)}>
-            <option value="">Select</option>
-            <option value="Station">Station</option>
-            <option value="QCA">QCA</option>
-            <option value="Owner">Owner</option>
-            <option value="AMR">AMR</option>
-          </select>
+    <div id="credentials">
+      <SectionCard title="Section B - Credentials">
+        <div className="grid md:grid-cols-2 gap-8">
+          
+          {/* Username Field */}
+          <div>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Username / Email <span className="text-red-500 font-bold">*</span>
+            </label>
+            <input 
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all" 
+              placeholder="Enter your email" 
+              value={username} 
+              onChange={(e) => setUsername(e.target.value)} 
+            />
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Password <span className="text-red-500 font-bold">*</span>
+            </label>
+            <input 
+              type="password" 
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all" 
+              placeholder="Enter password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+            />
+          </div>
+
+          {/* Confirm Password Field */}
+          <div>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Confirm Password <span className="text-red-500 font-bold">*</span>
+            </label>
+            <input 
+              type="password" 
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all" 
+              placeholder="Re-enter password" 
+              value={confirmPassword} 
+              onChange={(e) => setConfirmPassword(e.target.value)} 
+            />
+            {confirmPassword && password !== confirmPassword && (
+              <p className="text-red-500 text-[11px] mt-1 font-semibold italic">
+                ! Passwords do not match
+              </p>
+            )}
+          </div>
         </div>
-        <div>
-          <label className="block mb-1">Username / Email *</label>
-          <input className="w-full border p-3 rounded" placeholder="Enter your email" value={username} onChange={(e) => setUsername(e.target.value)} />
-        </div>
-        <div>
-          <label className="block mb-1">Password *</label>
-          <input type="password" className="w-full border p-3 rounded" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        <div>
-          <label className="block mb-1">Confirm Password *</label>
-          <input type="password" className="w-full border p-3 rounded" placeholder="Re-enter password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-        </div>
-      </div>
-    </SectionCard>
+      </SectionCard>
+    </div>
   );
 }

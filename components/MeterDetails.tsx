@@ -42,17 +42,20 @@ export default function MeterDetails({ setFormData }: Props) {
 
   return (
     <div id="meterdetails">
-      <SectionCard title="Section E - Meter Details">
-        <div className="space-y-4">
+      {/* Sidebar sequence ke hisaab se Section F set kiya hai */}
+      <SectionCard title="Section F - Meter Details">
+        <div className="space-y-6">
 
           {rows.map((row, index) => (
-            <div key={index} className="grid md:grid-cols-2 gap-4 border-b pb-4 last:border-0">
+            <div key={index} className="grid md:grid-cols-2 gap-8 border-b border-gray-100 pb-6 last:border-0 last:pb-0">
 
               {/* Meter No */}
               <div>
-                <label className="block mb-1 font-medium">Meter No. {index + 1} *</label>
+                <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+                  Meter No. {index + 1} <span className="text-red-500 font-bold">*</span>
+                </label>
                 <input
-                  className="w-full border p-3 rounded"
+                  className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
                   placeholder="Enter meter number (e.g. MTR001)"
                   value={row.meterNo}
                   onChange={(e) =>
@@ -67,9 +70,11 @@ export default function MeterDetails({ setFormData }: Props) {
 
               {/* Meter Owner */}
               <div>
-                <label className="block mb-1 font-medium">Meter Owner</label>
+                <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+                  Meter Owner
+                </label>
                 <input
-                  className="w-full border p-3 rounded"
+                  className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
                   placeholder="Enter name of meter owner"
                   value={row.meterOwner}
                   onChange={(e) =>
@@ -85,15 +90,18 @@ export default function MeterDetails({ setFormData }: Props) {
             </div>
           ))}
 
-          {/* Add Button */}
+          {/* Add Button Section */}
           <div className="pt-2">
             <button
               type="button"
               onClick={addRow}
-              className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded transition-colors"
+              className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-lg text-[13px] font-bold uppercase tracking-wider transition-all active:scale-95 shadow-md flex items-center gap-2"
             >
-              + Add Meter
+              <span className="text-lg">+</span> Add Meter Row
             </button>
+            <p className="mt-3 text-[11px] text-slate-400 italic">
+              * Click the button above to add multiple meters if required.
+            </p>
           </div>
 
         </div>

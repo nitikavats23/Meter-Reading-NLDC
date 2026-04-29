@@ -48,14 +48,17 @@ export default function AccountManager({ setFormData }: Props) {
 
   return (
     <div id="accountmanager">
-      <SectionCard title="Section B - Account Manager">
-        <div className="grid md:grid-cols-2 gap-5">
+      {/* Title updated to Section C as per your latest page.tsx logic */}
+      <SectionCard title="Section C - Account Manager Details">
+        <div className="grid md:grid-cols-2 gap-8">
 
           {/* Full Name */}
           <div>
-            <label className="block mb-1 font-medium">Full Name *</label>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Full Name <span className="text-red-500 font-bold">*</span>
+            </label>
             <input
-              className="w-full border p-3 rounded"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
               placeholder="Enter full name"
               value={fullname}
               onChange={(e) => setFullname(e.target.value)}
@@ -64,9 +67,11 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Designation */}
           <div>
-            <label className="block mb-1 font-medium">Designation *</label>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Designation <span className="text-red-500 font-bold">*</span>
+            </label>
             <input
-              className="w-full border p-3 rounded"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
               placeholder="e.g. Project Manager"
               value={designation}
               onChange={(e) => setDesignation(e.target.value)}
@@ -75,10 +80,12 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Primary Email */}
           <div>
-            <label className="block mb-1 font-medium">Primary Email *</label>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Primary Email <span className="text-red-500 font-bold">*</span>
+            </label>
             <input
               type="email"
-              className="w-full border p-3 rounded"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
               placeholder="example@domain.com"
               value={primaryemail}
               onChange={(e) => setPrimaryemail(e.target.value)}
@@ -87,10 +94,12 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Alternate Email */}
           <div>
-            <label className="block mb-1 font-medium">Alternate Email</label>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Alternate Email
+            </label>
             <input
               type="email"
-              className="w-full border p-3 rounded"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
               placeholder="secondary@domain.com"
               value={altemail}
               onChange={(e) => setAltemail(e.target.value)}
@@ -99,34 +108,38 @@ export default function AccountManager({ setFormData }: Props) {
 
           {/* Contact Number */}
           <div>
-            <label className="block mb-1 font-medium">Contact Number *</label>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Contact Number <span className="text-red-500 font-bold">*</span>
+            </label>
             <input
-              className="w-full border p-3 rounded"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
               placeholder="10-digit mobile number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
 
             {phone && !phoneValid && (
-              <p className="text-red-500 text-sm mt-1">
-                10 digit valid mobile number
+              <p className="text-red-500 text-[11px] mt-1 font-semibold italic">
+                ! Please enter a valid 10-digit mobile number
               </p>
             )}
           </div>
 
           {/* Alternate Contact */}
           <div>
-            <label className="block mb-1 font-medium">Alternate Contact</label>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Alternate Contact
+            </label>
             <input
-              className="w-full border p-3 rounded"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
               placeholder="Optional contact number"
               value={altPhone}
               onChange={(e) => setAltPhone(e.target.value)}
             />
 
             {altPhone && !altPhoneValid && (
-              <p className="text-red-500 text-sm mt-1">
-                Invalid number
+              <p className="text-red-500 text-[11px] mt-1 font-semibold italic">
+                ! Invalid alternate contact number
               </p>
             )}
           </div>
