@@ -11,6 +11,12 @@ datasource db {
    
 }
 
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  COORDINATOR
+}
+
 model User {
   id                String                 @id @default(uuid())
   userType          String
@@ -80,7 +86,7 @@ model QCADetails {
 model RoleAssignment {
   id         String @id @default(uuid())
   userId     String @unique
-  role       String
+  role       Role
   approverId String
   user       User   @relation(fields: [userId], references: [id])
 }
