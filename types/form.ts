@@ -1,36 +1,45 @@
+export type CredentialsType = {
+  username: string;
+  password: string;
+};
+
+export type AccountManagerType = {
+  name?: string;
+  email?: string;
+  phone?: string;
+};
+
+export type EntityType = {
+  rldc: string;
+};
+
+export type AssociateManagerType = {
+  name: string;
+  designation: string;
+  email: string;
+  phone: string;
+};
+
+export type MeterType = {
+  meterNo: string;
+  meterOwner: string;
+};
+
+export type QCADetailsType = {
+  licenseNumber: string;
+  managedStations: string;
+};
+
 export type FormDataType = {
-  credentials: {
-    userType: string;
-    username: string;
-    password: string;
-  };
-  accountManager: {
-    fullName?: string;
-    designation?: string;
-    email?: string;
-    altEmail?: string;
-    phone?: string;
-    altPhone?: string;
-  };
-  entity: {
-    entityName?: string;
-    substation?: string;
-    ownerName?: string;
-    ownerEmail?: string;
-    ownerPhone?: string;
-  };
-  associateManagers: {
-    name?: string;
-    designation?: string;
-    email?: string;
-    phone?: string;
-  }[];
-  meters: {
-    meterNo: string;
-    meterOwner?: string;
-  }[];
-  qcaDetails: {
-    licenseNumber?: string;
-    managedStations?: string;
-  };
+  userType: string;
+  role: string;
+
+  credentials: CredentialsType;
+  accountManager: AccountManagerType;
+  entity: EntityType;
+
+  associateManagers: AssociateManagerType[];
+  meters: MeterType[];
+
+  qcaDetails?: QCADetailsType; // ✅ optional
 };

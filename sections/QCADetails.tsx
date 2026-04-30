@@ -1,33 +1,77 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import React from "react";
 import SectionCard from "@/components/SectionCard";
 import { FormDataType } from "@/types/form";
 
-type Props = { setFormData: React.Dispatch<React.SetStateAction<FormDataType>>; };
+type Props = {
+  setFormData: React.Dispatch<React.SetStateAction<FormDataType>>;
+  formData: FormDataType;
+};
 
-export default function QCADetails({ setFormData }: Props) {
-  const [license, setLicense] = useState("");
-  const [stations, setStations] = useState("");
+export default function QCADetails({ formData, setFormData }: Props) {
 
-  useEffect(() => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
-      qcaDetails: { licenseNumber: license, managedStations: stations },
+      qcaDetails: {
+        ...(prev.qcaDetails || {
+          licenseNumber: "",
+          managedStations: "",
+        }),
+        [name]: value,
+      },
     }));
-  }, [license, stations, setFormData]);
+  };
 
   return (
-    <SectionCard title="Section F - QCA Details">
-      <div className="grid md:grid-cols-2 gap-5">
-        <div>
-          <label className="block mb-1">QCA License Number *</label>
-          <input className="w-full border p-3 rounded" placeholder="Enter QCA License Number" value={license} onChange={(e) => setLicense(e.target.value)} />
+    <div id="qcadetails">
+      <SectionCard title="Section G - QCA Details">
+        
+        <div className="grid grid-cols-2 gap-8">
+          
+          {/* License Number */}
+          <div>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              License Number
+            </label>
+
+            <input
+              type="text"
+              name="licenseNumber"
+              value={formData.qcaDetails?.licenseNumber || ""}
+              onChange={handleChange}
+              placeholder="Enter License Number"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100"
+            />
+          </div>
+
+          {/* Managed Stations */}
+          <div>
+            <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+              Managed Stations
+            </label>
+
+            <input
+              type="text"
+              name="managedStations"
+              value={formData.qcaDetails?.managedStations || ""}
+              onChange={handleChange}
+              placeholder="Enter Managed Stations"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100"
+            />
+          </div>
+
         </div>
-        <div>
-          <label className="block mb-1">Managed Stations *</label>
-          <input className="w-full border p-3 rounded" placeholder="Enter managed stations (e.g. Station A, B)" value={stations} onChange={(e) => setStations(e.target.value)} />
-        </div>
-      </div>
-    </SectionCard>
+
+        {/* Info Note */}
+        <p className="mt-4 text-xs text-gray-400 italic">
+          * These details are only applicable if User Type is QCA. Validation is handled during submission.
+        </p>
+
+      </SectionCard>
+    </div>
   );
 }

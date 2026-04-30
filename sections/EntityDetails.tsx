@@ -1,115 +1,61 @@
 "use client";
-
-import { useState, useEffect } from "react";
 import SectionCard from "@/components/SectionCard";
-import { FormDataType } from "@/types/form";
 
-/* ✅ Props */
-type Props = {
-  setFormData: React.Dispatch<
-    React.SetStateAction<FormDataType>
-  >;
-};
-
-export default function EntityDetails({ setFormData }: Props) {
-  const [entityName, setEntityName] = useState("");
-  const [substation, setSubstation] = useState("");
-  const [ownerName, setOwnerName] = useState("");
-  const [ownerEmail, setOwnerEmail] = useState("");
-  const [ownerPhone, setOwnerPhone] = useState("");
-
-  const phoneValid = /^[6-9]\d{9}$/.test(ownerPhone);
-
-  /* ✅ PUSH DATA TO PARENT */
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
+export default function EntityDetails({ formData, setFormData }: any) {
+  
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
       entity: {
-        entityName,
-        substation,
-        ownerName,
-        ownerEmail,
-        ownerPhone,
+        ...formData.entity,
+        [e.target.name]: e.target.value,
       },
-    }));
-  }, [
-    entityName,
-    substation,
-    ownerName,
-    ownerEmail,
-    ownerPhone,
-    setFormData,
-  ]);
+    });
+  };
+
+  const rldcOptions = ["NLDC", "NRLDC", "WRLDC", "ERLDC", "SRLDC", "NERLDC"];
 
   return (
-    <div id="entitydetails">
-      <SectionCard title="Section C - Entity Details">
-        <div className="grid md:grid-cols-2 gap-5">
-
-          {/* Entity Name */}
-          <div>
-            <label className="block mb-1 font-medium">Entity Name *</label>
-            <input
-              className="w-full border p-3 rounded"
-              placeholder="Enter Company or Entity Name" // Updated placeholder
-              value={entityName}
-              onChange={(e) => setEntityName(e.target.value)}
-            />
-          </div>
-
-          {/* Substation */}
-          <div>
-            <label className="block mb-1 font-medium">Substation *</label>
-            <input
-              className="w-full border p-3 rounded"
-              placeholder="Enter Substation Name or ID" // Updated placeholder
-              value={substation}
-              onChange={(e) => setSubstation(e.target.value)}
-            />
-          </div>
-
-          {/* Owner Name */}
-          <div>
-            <label className="block mb-1 font-medium">Entity Owner *</label>
-            <input
-              className="w-full border p-3 rounded"
-              placeholder="Full Name of the Owner" // Updated placeholder
-              value={ownerName}
-              onChange={(e) => setOwnerName(e.target.value)}
-            />
-          </div>
-
-          {/* Owner Email */}
-          <div>
-            <label className="block mb-1 font-medium">Owner Email *</label>
-            <input
-              type="email"
-              className="w-full border p-3 rounded"
-              placeholder="owner.email@example.com" // Updated placeholder
-              value={ownerEmail}
-              onChange={(e) => setOwnerEmail(e.target.value)}
-            />
-          </div>
-
-          {/* Owner Contact */}
-          <div>
-            <label className="block mb-1 font-medium">Owner Contact *</label>
-            <input
-              className="w-full border p-3 rounded"
-              placeholder="e.g. 9876543210" // Example placeholder
-              value={ownerPhone}
-              onChange={(e) => setOwnerPhone(e.target.value)}
-            />
-
-            {ownerPhone && !phoneValid && (
-              <p className="text-red-500 text-sm mt-1">
-                10 digit valid mobile number
-              </p>
-            )}
-          </div>
-
+    <SectionCard title="Section D - Entity Details">
+      <div className="grid grid-cols-2 gap-8">
+        
+        {/* Field 1: Entity Owner (Fixed Value) */}
+        <div>
+          <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+            Entity Owner <span className="text-red-500 font-bold">*</span>
+          </label>
+          <input
+            type="text"
+            value="GRID India"
+            disabled
+            className="w-full border border-gray-200 p-2.5 rounded-lg text-[13px] text-slate-500 font-bold bg-gray-50 cursor-not-allowed outline-none"
+          />
+          <p className="mt-1 text-[10px] text-slate-400 italic font-medium">
+            Note: Entity owner is fixed to GRID India.
+          </p>
         </div>
-      </SectionCard>
-    </div>
+
+        {/* Field 2: RLDC Dropdown */}
+        <div>
+          <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+            RLDC <span className="text-red-500 font-bold">*</span>
+          </label>
+          <select
+            name="rldc"
+            value={formData.entity?.rldc || ""}
+            onChange={handleChange}
+            className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-semibold outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all bg-white cursor-pointer"
+          >
+            <option value="">Select RLDC</option>
+            {rldcOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+      </div>
+    </SectionCard>
   );
 }
