@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import SectionCard from "@/components/SectionCard";
 import { FormDataType } from "@/types/form";
 
-type Props = { setFormData: React.Dispatch<React.SetStateAction<FormDataType>>; };
+type Props = {
+  setFormData: (partial: Partial<FormDataType>) => void;
+};
 
 export default function Credentials({ setFormData }: Props) {
   const [username, setUsername] = useState("");
@@ -11,15 +13,10 @@ export default function Credentials({ setFormData }: Props) {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      credentials: { 
-        ...(prev.credentials as any), 
-        username, 
-        password 
-      },
-    }));
-  }, [username, password, setFormData]); 
+    setFormData({
+      credentials: { username, password },
+    });
+  }, [username, password]);
 
   return (
     <div id="credentials">

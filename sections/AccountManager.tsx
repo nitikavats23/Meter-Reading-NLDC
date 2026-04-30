@@ -4,11 +4,8 @@ import { useState, useEffect } from "react";
 import SectionCard from "@/components/SectionCard";
 import { FormDataType } from "@/types/form";
 
-/* ✅ Props Typing */
 type Props = {
-  setFormData: React.Dispatch<
-    React.SetStateAction<FormDataType>
-  >;
+  setFormData: (partial: Partial<FormDataType>) => void;
 };
 
 export default function AccountManager({ setFormData }: Props) {
@@ -20,13 +17,10 @@ export default function AccountManager({ setFormData }: Props) {
   const [designation, setDesignation] = useState("");
 
   const phoneValid = /^[6-9]\d{9}$/.test(phone);
-  const altPhoneValid =
-    altPhone === "" || /^[6-9]\d{9}$/.test(altPhone);
+  const altPhoneValid = altPhone === "" || /^[6-9]\d{9}$/.test(altPhone);
 
-  /* ✅ PUSH DATA TO PARENT */
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
+    setFormData({
       accountManager: {
         fullName: fullname,
         designation,
@@ -35,20 +29,11 @@ export default function AccountManager({ setFormData }: Props) {
         phone,
         altPhone,
       },
-    }));
-  }, [
-    fullname,
-    designation,
-    primaryemail,
-    altemail,
-    phone,
-    altPhone,
-    setFormData,
-  ]);
+    });
+  }, [fullname, designation, primaryemail, altemail, phone, altPhone]);
 
   return (
     <div id="accountmanager">
-      {/* Title updated to Section C as per your latest page.tsx logic */}
       <SectionCard title="Section C - Account Manager Details">
         <div className="grid md:grid-cols-2 gap-8">
 
@@ -117,7 +102,6 @@ export default function AccountManager({ setFormData }: Props) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
-
             {phone && !phoneValid && (
               <p className="text-red-500 text-[11px] mt-1 font-semibold italic">
                 ! Please enter a valid 10-digit mobile number
@@ -136,7 +120,6 @@ export default function AccountManager({ setFormData }: Props) {
               value={altPhone}
               onChange={(e) => setAltPhone(e.target.value)}
             />
-
             {altPhone && !altPhoneValid && (
               <p className="text-red-500 text-[11px] mt-1 font-semibold italic">
                 ! Invalid alternate contact number

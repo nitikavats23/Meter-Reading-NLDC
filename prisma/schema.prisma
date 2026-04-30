@@ -15,8 +15,12 @@ enum Role {
   SUPER_ADMIN
   ADMIN
   COORDINATOR
+  RLDC_ADMIN
+  RLDC_COORDINATOR
+  RLDC_USER
+  RLDC_ANALYST
+  USER
 }
-
 model User {
   id                String                 @id @default(uuid())
   userType          String
@@ -49,9 +53,10 @@ model Entity {
   userId     String @unique
   entityName String
   substation String
-  ownerName  String
+  ownerName  String @default("GRID India")
   ownerEmail String
   ownerPhone String
+  rldc       String @default("")
   user       User   @relation(fields: [userId], references: [id])
 }
 
@@ -87,14 +92,14 @@ model RoleAssignment {
   id         String @id @default(uuid())
   userId     String @unique
   role       Role
-  approverId String
+  approverId String?
   user       User   @relation(fields: [userId], references: [id])
 }
 
 model Approval {
   id         String   @id @default(uuid())
   userId     String
-  approverId String
+  approverId String?
   status     String   @default("Pending")
   // Possible values:
   // "Pending"             → just registered, waiting for coordinator

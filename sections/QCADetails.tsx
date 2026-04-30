@@ -5,8 +5,8 @@ import SectionCard from "@/components/SectionCard";
 import { FormDataType } from "@/types/form";
 
 type Props = {
-  setFormData: React.Dispatch<React.SetStateAction<FormDataType>>;
   formData: FormDataType;
+  setFormData: (partial: Partial<FormDataType>) => void;
 };
 
 export default function QCADetails({ formData, setFormData }: Props) {
@@ -14,22 +14,18 @@ export default function QCADetails({ formData, setFormData }: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
+    setFormData({
       qcaDetails: {
-        ...(prev.qcaDetails || {
-          licenseNumber: "",
-          managedStations: "",
-        }),
+        licenseNumber: formData.qcaDetails?.licenseNumber ?? "",
+        managedStations: formData.qcaDetails?.managedStations ?? "",
         [name]: value,
       },
-    }));
+    });
   };
 
   return (
     <div id="qcadetails">
       <SectionCard title="Section G - QCA Details">
-        
         <div className="grid grid-cols-2 gap-8">
           
           {/* License Number */}
@@ -37,7 +33,6 @@ export default function QCADetails({ formData, setFormData }: Props) {
             <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
               License Number
             </label>
-
             <input
               type="text"
               name="licenseNumber"
@@ -53,7 +48,6 @@ export default function QCADetails({ formData, setFormData }: Props) {
             <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
               Managed Stations
             </label>
-
             <input
               type="text"
               name="managedStations"
@@ -66,11 +60,9 @@ export default function QCADetails({ formData, setFormData }: Props) {
 
         </div>
 
-        {/* Info Note */}
         <p className="mt-4 text-xs text-gray-400 italic">
-          * These details are only applicable if User Type is QCA. Validation is handled during submission.
+          * These details are only applicable if User Type is QCA.
         </p>
-
       </SectionCard>
     </div>
   );
