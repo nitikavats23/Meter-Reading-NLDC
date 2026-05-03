@@ -44,5 +44,5 @@ export type FormDataType = {
     meterOwner?: string;
   }[];
 
-  qcaDetails?: QCADetailsType; // 👈 optional (important)
+  qcaDetails?: QCADetailsType; 
 };
