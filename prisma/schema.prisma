@@ -34,6 +34,7 @@ model User {
   meters            Meter[]
   qcaDetails        QCADetails?
   role              RoleAssignment?
+  
 }
 
 model AccountManagerProfile {

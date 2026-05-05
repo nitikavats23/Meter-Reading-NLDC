@@ -139,11 +139,11 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        console.error("❌ API ERROR:", data);
+        console.error(" API ERROR:", data);
         throw new Error(data.error || "Registration failed");
       }
 
-      console.log("✅ SUCCESS:", data);
+      console.log("SUCCESS:", data);
       setSubmitted(true);
 
       if (formData.role === "COORDINATOR") {
