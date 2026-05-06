@@ -34,7 +34,17 @@ model User {
   meters            Meter[]
   qcaDetails        QCADetails?
   role              RoleAssignment?
+  tokens            UserToken[]
   
+}
+
+model UserToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model AccountManagerProfile {

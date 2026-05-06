@@ -27,7 +27,7 @@ export default function Credentials({ setFormData }: Props) {
           <div>
             <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
               Username / Email <span className="text-red-500 font-bold">*</span>
-            </label>
+            </label>    
             <input 
               className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all" 
               placeholder="Enter your email" 
