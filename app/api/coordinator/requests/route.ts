@@ -1,24 +1,43 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const data = await prisma.approval.findMany({
-    where: {
-      status: "Pending",
-    },
-    include: {
-      user: {
-        include: {
-          profile: true,
-          entity: true,
-          meters: true,
-        },
+  try {
+    const pendingRegistrations = await prisma.user.findMany({
+      where: {
+        approvals: {
+          some: {
+            status: "Pending"
+          }
+        }
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      include: {
+        profile: true, 
+        approvals: {
+          where: { status: "Pending" }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
-  return NextResponse.json(data);
+   // Data ko clean karke bhej rahe hain
+const formattedData = pendingRegistrations.map((user: any) => {
+  return {
+    id: user.id,
+    // Pehle profile ka fullName check karega, fir profile ki email, fir main user ki email
+    name: user.profile?.fullName || user.profile?.email || user.email || "Unknown User",
+    type: user.userType || "N/A",
+    // Safe date formatting
+    timeAgo: user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-GB') : "Recently",
+    status: "Pending"
+  };
+});
+
+    return NextResponse.json(formattedData);
+  } catch (error: any) {
+    console.error("Fetch Error:", error);
+    return NextResponse.json({ error: "Data fetch fail ho gaya", details: error.message }, { status: 500 });
+  }
 }

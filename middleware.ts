@@ -2,33 +2,20 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-export async function middleware(req: NextRequest) {
-  const token = await getToken({ req });
-  const { pathname } = req.nextUrl;
+export async function middleware(request: NextRequest) {
+  const token = await getToken({ req: request });
+  const { pathname } = request.nextUrl;
 
-  // Protect coordinator routes
-  if (pathname.startsWith("/coordinator")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    if (token.userType !== "Coordinator") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-  }
-
-  // Protect user dashboard
-  if (pathname.startsWith("/dashboard")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    if (token.userType === "Coordinator") {
-      return NextResponse.redirect(new URL("/coordinator", req.url));
-    }
-  }
+  // Abhi ke liye redirection ko bypass karte hain 
+  // taaki tum development kar sako bina login page ke
+  
+  // Agar tum check karna chahte ho ki path sahi hai ya nahi:
+  console.log("Current Path:", pathname);
 
   return NextResponse.next();
 }
 
+// Matcher ko waisa hi rehne do
 export const config = {
   matcher: ["/dashboard/:path*", "/coordinator/:path*"],
 };
