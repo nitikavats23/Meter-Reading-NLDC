@@ -6,7 +6,14 @@ import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
 
 type LoginMode = "username" | "email";
-type Role = "USER" | "COORDINATOR" | "ADMIN";
+type Role = "USER" | "COORDINATOR" | "ADMIN"|"SUPER_ADMIN";
+
+const ROLE_REDIRECTS: Record<Role, string> = {
+  SUPER_ADMIN: "/dashboard/super-admin", 
+  ADMIN:       "/dashboard/admin",
+  COORDINATOR: "/dashboard/coordinator",
+  USER:        "/dashboard/user",
+};
 
 export default function LoginPage() {
   const [mode, setMode] = useState<LoginMode>("username");
@@ -38,9 +45,7 @@ export default function LoginPage() {
       recaptchaRef.current?.reset();
       setCaptchaToken("");
       if (res.ok) {
-        if (role === "ADMIN") router.push("/admin/dashboard");
-        else if (role === "COORDINATOR") router.push("/coordinator/dashboard");
-        else router.push("/dashboard");
+        router.push(ROLE_REDIRECTS[role]);
         router.refresh();
       } else {
         alert(data.message || "Login failed");
@@ -84,7 +89,7 @@ export default function LoginPage() {
 
           {/* Role dropdown */}
           <div>
-            <label className="block text-xs  font-bold text-slate-800  mb-1">Login As</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Login As</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -96,11 +101,11 @@ export default function LoginPage() {
                 onChange={(e) => setRole(e.target.value as Role)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-8 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none cursor-pointer"
               >
+                <option value="SUPER_ADMIN">Super Admin</option> 
                 <option value="USER">User</option>
                 <option value="COORDINATOR">Coordinator</option>
                 <option value="ADMIN">Admin</option>
               </select>
-              {/* Custom chevron */}
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -111,7 +116,7 @@ export default function LoginPage() {
 
           {/* Identifier */}
           <div>
-            <label className="block text-xs font-bold text-slate-800  mb-1">
+            <label className="block text-xs font-bold text-slate-800 mb-1">
               {mode === "username" ? "Username" : "Email"}
             </label>
             <div className="relative">
@@ -139,7 +144,7 @@ export default function LoginPage() {
 
           {/* Password */}
           <div>
-            <label className="block text-xs font-bold  text-slate-800  mb-1">Password</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Password</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

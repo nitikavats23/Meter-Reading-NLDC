@@ -36,6 +36,7 @@ model User {
   role              RoleAssignment?
   tokens            UserToken[]
   
+  
 }
 
 model UserToken {

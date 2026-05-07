@@ -2,7 +2,10 @@
   "compilerOptions": {
     "ignoreDeprecations": "6.0",
     "paths": {
-    "@generated/*": ["./src/generated/*"]
+    "@generated/*": ["./src/generated/*"],
+    "module": "commonjs",
+    "target": "es2020",
+    "esModuleInterop": true
     },
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
