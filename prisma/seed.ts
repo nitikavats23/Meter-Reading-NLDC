@@ -11,14 +11,14 @@ async function main() {
   );
 
   const superAdmin = await prisma.user.upsert({
-    where: { username: 'superadmin' }, // ✅ only @unique field on User
+    where: { username: 'superadmin' }, 
     update: {},
     create: {
       username: 'superadmin',
       password: hashedPassword,
       userType: 'SUPER_ADMIN',
 
-      // ✅ Email belongs here, not on User
+      //  Email belongs 
       profile: {
         create: {
           fullName: 'Super Admin',
@@ -28,7 +28,7 @@ async function main() {
         },
       },
 
-      // ✅ Role from RoleAssignment model
+      //  Role from RoleAssignment model
       role: {
         create: {
           role: Role.SUPER_ADMIN,
@@ -36,7 +36,7 @@ async function main() {
         },
       },
 
-      // ✅ Auto-approve the super admin
+      //  Auto-approve the super admin
       approvals: {
         create: {
           status: 'Activated',
@@ -46,7 +46,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Super Admin seeded successfully');
+  console.log(' Super Admin seeded successfully');
   console.log('   Username :', superAdmin.username);
   console.log('   User ID  :', superAdmin.id);
   console.log('   Role     :', 'SUPER_ADMIN');
@@ -54,7 +54,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
+    console.error(' Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {
