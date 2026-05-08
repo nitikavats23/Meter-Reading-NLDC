@@ -1,5 +1,4 @@
-import Sidebar from "@/components/Sidebar";
-
+// DashboardLayout file ko aise clean kar do
 export default function DashboardLayout({
   children,
 }: {
@@ -7,10 +6,8 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex h-screen w-full bg-slate-50 overflow-hidden">
-      {/* Har dashboard page par Sidebar fix rahega */}
-      <Sidebar />
+      {/* Sidebar yahan se hata diya hai taaki pages apna khud ka sidebar use karein */}
       
-      {/* Isme Coordinator ya Admin ka page load hoga */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {children}
       </div>

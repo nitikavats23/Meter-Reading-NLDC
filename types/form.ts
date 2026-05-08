@@ -39,9 +39,17 @@ export type FormDataType = {
     phone?: string;
   }[];
 
+  // UPDATED METERS TYPE HERE
   meters: {
-    meterNo: string;
-    meterOwner?: string;
+    meterNo: string;      // Required
+    meterOwner: string;
+    feederName: string;
+    type: string;
+    technology: string;
+    make: string;
+    model: string;
+    fromDate: string;
+    locationId?: string;
   }[];
 
   qcaDetails?: QCADetailsType; 

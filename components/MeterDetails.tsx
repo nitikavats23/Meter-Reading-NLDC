@@ -10,100 +10,130 @@ type Props = {
 
 export default function MeterDetails({ setFormData }: Props) {
   const [rows, setRows] = useState([
-    { meterNo: "", meterOwner: "" },
+    { 
+      meterNo: "",
+      meterOwner: "CTUIL", 
+      feederName: "", 
+      type: "Primary", 
+      technology: "AMR", 
+      make: "ABB", 
+      model: "", 
+      fromDate: "",
+      locationId: "" 
+    },
   ]);
 
-  const handleChange = (
-    index: number,
-    field: "meterNo" | "meterOwner",
-    value: string
-  ) => {
+  const handleChange = (index: number, field: string, value: string) => {
     const updated = [...rows];
+    // @ts-ignore
     updated[index][field] = value;
     setRows(updated);
   };
 
   const addRow = () => {
-    setRows([...rows, { meterNo: "", meterOwner: "" }]);
+    setRows([...rows, { 
+      meterNo: "",
+      meterOwner: "CTUIL", 
+      feederName: "", 
+      type: "Primary", 
+      technology: "AMR", 
+      make: "ABB", 
+      model: "", 
+      fromDate: "",
+      locationId: "" 
+    }]);
   };
 
+  // Row delete karne ka function
   const removeRow = (index: number) => {
-    if (rows.length === 1) return; // keep at least one row
-    setRows(rows.filter((_, i) => i !== index));
+    // Ye check karega ki kam se kam 1 row bachi rahe
+    if (rows.length > 1) {
+      setRows(rows.filter((_, i) => i !== index));
+    }
   };
 
   useEffect(() => {
     setFormData({ meters: rows });
-  }, [rows]);
+  }, [rows, setFormData]);
 
   return (
     <div id="meterdetails">
       <SectionCard title="Section F - Meter Details">
-        <div className="space-y-6">
+        <div className="space-y-4">
+          <div className="overflow-x-auto border border-slate-200 rounded-lg">
+            <table className="w-full text-left border-collapse min-w-[1150px]">
+              <thead className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                <tr>
+                  <th className="px-3 py-3 border-r">Meter No. *</th>
+                  <th className="px-3 py-3 border-r">Owner</th>
+                  <th className="px-3 py-3 border-r">Feeder Name</th>
+                  <th className="px-3 py-3 border-r">Type</th>
+                  <th className="px-3 py-3 border-r">Tech</th>
+                  <th className="px-3 py-3 border-r">Make</th>
+                  <th className="px-3 py-3 border-r">Model</th>
+                  <th className="px-3 py-3 border-r">From Date</th>
+                  <th className="px-3 py-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {rows.map((row, index) => (
+                  <tr key={index} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-2 border-r">
+                      <input className="w-full p-1.5 text-[12px] border rounded-md" placeholder="MTR001" value={row.meterNo} onChange={(e) => handleChange(index, "meterNo", e.target.value)} />
+                    </td>
+                    <td className="p-2 border-r">
+                      <select className="w-full p-1.5 text-[12px] border rounded-md" value={row.meterOwner} onChange={(e) => handleChange(index, "meterOwner", e.target.value)}>
+                        <option value="CTUIL">CTUIL</option><option value="STU">STU</option>
+                      </select>
+                    </td>
+                    <td className="p-2 border-r">
+                      <input className="w-full p-1.5 text-[12px] border rounded-md" placeholder="Feeder Name" value={row.feederName} onChange={(e) => handleChange(index, "feederName", e.target.value)} />
+                    </td>
+                    <td className="p-2 border-r">
+                      <select className="w-full p-1.5 text-[12px] border rounded-md" value={row.type} onChange={(e) => handleChange(index, "type", e.target.value)}>
+                        <option value="Primary">Primary</option><option value="Check">Check</option><option value="Standby">Standby</option>
+                      </select>
+                    </td>
+                    <td className="p-2 border-r">
+                      <select className="w-full p-1.5 text-[12px] border rounded-md" value={row.technology} onChange={(e) => handleChange(index, "technology", e.target.value)}>
+                        <option value="AMR">AMR</option><option value="Non-AMR">Non-AMR</option>
+                      </select>
+                    </td>
+                    <td className="p-2 border-r">
+                      <select className="w-full p-1.5 text-[12px] border rounded-md" value={row.make} onChange={(e) => handleChange(index, "make", e.target.value)}>
+                        <option value="ABB">ABB</option><option value="Secure">Secure</option><option value="L&T">L&T</option>
+                      </select>
+                    </td>
+                    <td className="p-2 border-r">
+                      <input className="w-full p-1.5 text-[12px] border rounded-md" placeholder="Model" value={row.model} onChange={(e) => handleChange(index, "model", e.target.value)} />
+                    </td>
+                    <td className="p-2 border-r">
+                      <input type="date" className="w-full p-1.5 text-[11px] border rounded-md" value={row.fromDate} onChange={(e) => handleChange(index, "fromDate", e.target.value)} />
+                    </td>
 
-          {rows.map((row, index) => (
-            <div key={index} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
-              
-              {/* Row Header */}
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                  Meter {index + 1}
-                </p>
-                {rows.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeRow(index)}
-                    className="text-red-500 hover:text-red-700 text-[11px] font-bold uppercase tracking-wide transition-all flex items-center gap-1"
-                  >
-                    <span className="text-base leading-none">×</span> Remove
-                  </button>
-                )}
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Meter No */}
-                <div>
-                  <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
-                    Meter No. {index + 1} <span className="text-red-500 font-bold">*</span>
-                  </label>
-                  <input
-                    className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
-                    placeholder="Enter meter number (e.g. MTR001)"
-                    value={row.meterNo}
-                    onChange={(e) => handleChange(index, "meterNo", e.target.value)}
-                  />
-                </div>
-
-                {/* Meter Owner */}
-                <div>
-                  <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
-                    Meter Owner
-                  </label>
-                  <input
-                    className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all"
-                    placeholder="Enter name of meter owner"
-                    value={row.meterOwner}
-                    onChange={(e) => handleChange(index, "meterOwner", e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Add Button Section */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={addRow}
-              className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-lg text-[13px] font-bold uppercase tracking-wider transition-all active:scale-95 shadow-md flex items-center gap-2"
-            >
-              <span className="text-lg">+</span> Add 
-            </button>
-            <p className="mt-3 text-[11px] text-slate-400 italic">
-              * Click the button above to add multiple meters if required.
-            </p>
+                    {/* LAST ME CROSS BUTTON */}
+                    <td className="p-2 text-center">
+                      {rows.length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => removeRow(index)}
+                          className="bg-red-50 text-red-500 hover:bg-red-100 w-8 h-8 rounded-full flex items-center justify-center transition-all font-bold text-lg shadow-sm border border-red-100"
+                        >
+                          ×
+                        </button>
+                      ) : (
+                        <span className="text-slate-300 text-xs">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
+          <button type="button" onClick={addRow} className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-[13px] font-bold mt-2">
+            <span className="text-xl">+</span> ADD ANOTHER METER ROW
+          </button>
         </div>
       </SectionCard>
     </div>
