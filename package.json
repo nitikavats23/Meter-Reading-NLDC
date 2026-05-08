@@ -14,6 +14,8 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
+    "@fontsource/dm-mono": "^5.2.7",
+    "@fontsource/dm-sans": "^5.2.8",
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-neon": "^7.8.0",
     "@prisma/client": "^5.22.0",

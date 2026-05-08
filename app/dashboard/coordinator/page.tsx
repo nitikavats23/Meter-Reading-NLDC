@@ -82,6 +82,7 @@ export default function CoordinatorPage() {
   const fetchRequests = async () => {
     try {
       setLoading(true);
+
       const response = await fetch("/api/coordinator/requests");
 
       if (!response.ok) {
@@ -91,7 +92,6 @@ export default function CoordinatorPage() {
 
       const data = await response.json();
 
-      // API returns { pendingRequests, actionedRequests, counts }
       const pending: PendingRequest[] = data.pendingRequests ?? [];
       setRequests(pending);
 
@@ -105,23 +105,60 @@ export default function CoordinatorPage() {
     }
   };
 
-useEffect(() => {
-  const load = async () => {
-    await fetchRequests();
+  useEffect(() => {
+  let mounted = true;
+
+  const loadRequests = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/coordinator/requests");
+
+      if (!response.ok) {
+        console.error("Failed to fetch requests");
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!mounted) return;
+
+      const pending: PendingRequest[] = data.pendingRequests ?? [];
+
+      setRequests(pending);
+
+      if (pending.length > 0) {
+        setSelectedId(pending[0].id);
+      }
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+    } finally {
+      if (mounted) {
+        setLoading(false);
+      }
+    }
   };
-  load();
+
+  loadRequests();
+
+  return () => {
+    mounted = false;
+  };
 }, []);
   const selectedRequest = requests.find((req) => req.id === selectedId);
 
   const handleForward = async () => {
     if (!selectedRequest) return;
+
     setActionState("loading");
     setActionMessage("");
 
     try {
       const response = await fetch("/api/coordinator/action", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           registrationId: selectedRequest.userId,
           assignedRole: selectedRequest.user.role?.role ?? "USER",
@@ -141,8 +178,8 @@ useEffect(() => {
       setActionMessage(data.message || "Forwarded to Admin successfully");
       setRemarks("");
 
-      // Remove from list and select next
       const remaining = requests.filter((r) => r.id !== selectedId);
+
       setRequests(remaining);
       setSelectedId(remaining.length > 0 ? remaining[0].id : null);
     } catch {
@@ -153,13 +190,16 @@ useEffect(() => {
 
   const handleReject = async () => {
     if (!selectedRequest) return;
+
     setActionState("loading");
     setActionMessage("");
 
     try {
       const response = await fetch("/api/coordinator/requests", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           registrationId: selectedRequest.userId,
           remarks: remarks || "Rejected by coordinator",
@@ -178,8 +218,8 @@ useEffect(() => {
       setActionMessage(data.message || "Request rejected successfully");
       setRemarks("");
 
-      // Remove from list and select next
       const remaining = requests.filter((r) => r.id !== selectedId);
+
       setRequests(remaining);
       setSelectedId(remaining.length > 0 ? remaining[0].id : null);
     } catch {
@@ -229,8 +269,10 @@ useEffect(() => {
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-slate-800">
                 Request Details:{" "}
-                {selectedRequest.user.profile?.fullName ?? selectedRequest.user.username}
+                {selectedRequest.user.profile?.fullName ??
+                  selectedRequest.user.username}
               </h1>
+
               <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
                 {selectedRequest.status}
               </span>
@@ -243,24 +285,36 @@ useEffect(() => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-slate-500">User Type</p>
-                  <p className="font-medium text-slate-700">{selectedRequest.user.userType}</p>
+                  <p className="font-medium text-slate-700">
+                    {selectedRequest.user.userType}
+                  </p>
                 </div>
+
                 <div>
                   <p className="text-sm text-slate-500">Username</p>
-                  <p className="font-medium text-slate-700">{selectedRequest.user.username}</p>
+                  <p className="font-medium text-slate-700">
+                    {selectedRequest.user.username}
+                  </p>
                 </div>
+
                 <div>
                   <p className="text-sm text-slate-500">Request ID</p>
-                  <p className="font-medium text-slate-700">{selectedRequest.id}</p>
+                  <p className="font-medium text-slate-700">
+                    {selectedRequest.id}
+                  </p>
                 </div>
+
                 <div>
                   <p className="text-sm text-slate-500">Received On</p>
                   <p className="font-medium text-slate-700">
-                    {new Date(selectedRequest.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    {new Date(selectedRequest.createdAt).toLocaleDateString(
+                      "en-IN",
+                      {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      }
+                    )}
                   </p>
                 </div>
               </div>
@@ -272,30 +326,47 @@ useEffect(() => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-slate-500">Full Name</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.profile.fullName}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.profile.fullName}
+                    </p>
                   </div>
+
                   <div>
                     <p className="text-sm text-slate-500">Designation</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.profile.designation}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.profile.designation}
+                    </p>
                   </div>
+
                   <div>
                     <p className="text-sm text-slate-500">Email</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.profile.email}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.profile.email}
+                    </p>
                   </div>
+
                   <div>
                     <p className="text-sm text-slate-500">Phone</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.profile.phone}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.profile.phone}
+                    </p>
                   </div>
+
                   {selectedRequest.user.profile.altEmail && (
                     <div>
                       <p className="text-sm text-slate-500">Alt Email</p>
-                      <p className="font-medium text-slate-700">{selectedRequest.user.profile.altEmail}</p>
+                      <p className="font-medium text-slate-700">
+                        {selectedRequest.user.profile.altEmail}
+                      </p>
                     </div>
                   )}
+
                   {selectedRequest.user.profile.altPhone && (
                     <div>
                       <p className="text-sm text-slate-500">Alt Phone</p>
-                      <p className="font-medium text-slate-700">{selectedRequest.user.profile.altPhone}</p>
+                      <p className="font-medium text-slate-700">
+                        {selectedRequest.user.profile.altPhone}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -308,27 +379,44 @@ useEffect(() => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-slate-500">Entity Name</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.entity.entityName}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.entity.entityName}
+                    </p>
                   </div>
+
                   <div>
                     <p className="text-sm text-slate-500">Substation</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.entity.substation}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.entity.substation}
+                    </p>
                   </div>
+
                   <div>
                     <p className="text-sm text-slate-500">Owner Name</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.entity.ownerName}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.entity.ownerName}
+                    </p>
                   </div>
+
                   <div>
                     <p className="text-sm text-slate-500">Owner Email</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.entity.ownerEmail}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.entity.ownerEmail}
+                    </p>
                   </div>
+
                   <div>
                     <p className="text-sm text-slate-500">Owner Phone</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.entity.ownerPhone}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.entity.ownerPhone}
+                    </p>
                   </div>
+
                   <div>
                     <p className="text-sm text-slate-500">RLDC</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.entity.rldc || "—"}</p>
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.entity.rldc || "—"}
+                    </p>
                   </div>
                 </div>
               </SectionCard>
@@ -346,12 +434,22 @@ useEffect(() => {
                         <th className="pb-2 font-medium">Owner</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {selectedRequest.user.meters.map((meter, i) => (
-                        <tr key={meter.id} className="border-b last:border-0">
+                        <tr
+                          key={meter.id}
+                          className="border-b last:border-0"
+                        >
                           <td className="py-2 text-slate-500">{i + 1}</td>
-                          <td className="py-2 font-medium text-slate-700">{meter.meterNo}</td>
-                          <td className="py-2 text-slate-700">{meter.meterOwner}</td>
+
+                          <td className="py-2 font-medium text-slate-700">
+                            {meter.meterNo}
+                          </td>
+
+                          <td className="py-2 text-slate-700">
+                            {meter.meterOwner}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -365,13 +463,27 @@ useEffect(() => {
               <SectionCard title="QCA Details">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-slate-500">License Number</p>
-                    <p className="font-medium text-slate-700">{selectedRequest.user.qcaDetails.licenseNumber}</p>
+                    <p className="text-sm text-slate-500">
+                      License Number
+                    </p>
+
+                    <p className="font-medium text-slate-700">
+                      {selectedRequest.user.qcaDetails.licenseNumber}
+                    </p>
                   </div>
+
                   {selectedRequest.user.qcaDetails.managedStations && (
                     <div>
-                      <p className="text-sm text-slate-500">Managed Stations</p>
-                      <p className="font-medium text-slate-700">{selectedRequest.user.qcaDetails.managedStations}</p>
+                      <p className="text-sm text-slate-500">
+                        Managed Stations
+                      </p>
+
+                      <p className="font-medium text-slate-700">
+                        {
+                          selectedRequest.user.qcaDetails
+                            .managedStations
+                        }
+                      </p>
                     </div>
                   )}
                 </div>
@@ -386,20 +498,39 @@ useEffect(() => {
                     <thead>
                       <tr className="text-left text-slate-500 border-b">
                         <th className="pb-2 font-medium">Name</th>
-                        <th className="pb-2 font-medium">Designation</th>
+                        <th className="pb-2 font-medium">
+                          Designation
+                        </th>
                         <th className="pb-2 font-medium">Email</th>
                         <th className="pb-2 font-medium">Phone</th>
                       </tr>
                     </thead>
+
                     <tbody>
-                      {selectedRequest.user.associateManagers.map((mgr) => (
-                        <tr key={mgr.id} className="border-b last:border-0">
-                          <td className="py-2 font-medium text-slate-700">{mgr.name ?? "—"}</td>
-                          <td className="py-2 text-slate-700">{mgr.designation ?? "—"}</td>
-                          <td className="py-2 text-slate-700">{mgr.email ?? "—"}</td>
-                          <td className="py-2 text-slate-700">{mgr.phone ?? "—"}</td>
-                        </tr>
-                      ))}
+                      {selectedRequest.user.associateManagers.map(
+                        (mgr) => (
+                          <tr
+                            key={mgr.id}
+                            className="border-b last:border-0"
+                          >
+                            <td className="py-2 font-medium text-slate-700">
+                              {mgr.name ?? "—"}
+                            </td>
+
+                            <td className="py-2 text-slate-700">
+                              {mgr.designation ?? "—"}
+                            </td>
+
+                            <td className="py-2 text-slate-700">
+                              {mgr.email ?? "—"}
+                            </td>
+
+                            <td className="py-2 text-slate-700">
+                              {mgr.phone ?? "—"}
+                            </td>
+                          </tr>
+                        )
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -437,14 +568,19 @@ useEffect(() => {
                 disabled={actionState === "loading"}
                 className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {actionState === "loading" ? "Processing..." : "Forward to Admin"}
+                {actionState === "loading"
+                  ? "Processing..."
+                  : "Forward to Admin"}
               </button>
+
               <button
                 onClick={handleReject}
                 disabled={actionState === "loading"}
                 className="flex-1 border border-red-200 text-red-600 py-2 rounded-lg font-semibold hover:bg-red-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {actionState === "loading" ? "Processing..." : "Reject Request"}
+                {actionState === "loading"
+                  ? "Processing..."
+                  : "Reject Request"}
               </button>
             </div>
           </div>
