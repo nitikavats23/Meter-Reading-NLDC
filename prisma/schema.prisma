@@ -57,6 +57,8 @@ model AccountManagerProfile {
   altEmail    String?
   phone       String
   altPhone    String?
+  region      String    @default("Centre")
+  rldc        String    @default("NLDC")
   user        User    @relation(fields: [userId], references: [id])
 }
 

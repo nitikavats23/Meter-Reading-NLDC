@@ -1,137 +1,128 @@
+// app/api/coordinator/action/route.ts
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@prisma/client";
+import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
-    const cookieHeader = req.headers.get("cookie") || "";
-
-    const approverId = cookieHeader
-      .split(";")
-      .find((c) => c.trim().startsWith("userId="))
-      ?.split("=")[1]
-      ?.trim();
-
-    const role = cookieHeader
-      .split(";")
-      .find((c) => c.trim().startsWith("role="))
-      ?.split("=")[1]
-      ?.trim();
-
-    // Auth check
-    if (!approverId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (role !== "COORDINATOR" && role !== "RLDC_COORDINATOR") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const body = await req.json();
-    const { registrationId, assignedRole, remarks } = body;
+    const { registrationId, assignedRole, remarks } = await req.json();
 
     if (!registrationId) {
-      return NextResponse.json({ error: "Registration ID missing" }, { status: 400 });
+      return NextResponse.json(
+        { error: "registrationId is required" },
+        { status: 400 }
+      );
     }
 
-    if (!assignedRole || !(assignedRole in Role)) {
-      return NextResponse.json({ error: "Invalid role provided" }, { status: 400 });
-    }
+    // 1. Get coordinator's userId from session cookie
+    const cookieStore = await cookies();
+    const coordinatorId = cookieStore.get("userId")?.value;
 
-    // Check if the user to approve actually exists
-    const targetUser = await prisma.user.findUnique({
+    // 2. Find the registering user's RLDC from their entity
+    const registeringUser = await prisma.user.findUnique({
       where: { id: registrationId },
+      include: { entity: true },
     });
 
-    if (!targetUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!registeringUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
     }
 
-    // Check if there's a pending approval to act on
-    const pendingApproval = await prisma.approval.findFirst({
-      where: { userId: registrationId, status: "Pending" },
-    });
+    const userRldc = registeringUser.entity?.rldc;
 
-    if (!pendingApproval) {
-      return NextResponse.json({ error: "No pending approval found for this user" }, { status: 404 });
+    if (!userRldc) {
+      return NextResponse.json(
+        { error: "Registering user has no RLDC assigned" },
+        { status: 400 }
+      );
     }
 
-    // Transaction: update approval status + upsert role assignment
-    await prisma.$transaction([
-      prisma.approval.updateMany({
-        where: {
-          userId: registrationId,
-          status: "Pending",
-        },
-        data: {
-          status: "CoordinatorApproved",
-          remarks: remarks || "",
-          approverId: approverId,
-        },
-      }),
+    console.log(`[FORWARD] User RLDC: ${userRldc} — looking for matching RLDC_ADMIN`);
 
-      prisma.roleAssignment.upsert({
-        where: { userId: registrationId },
-        update: {
-          role: assignedRole as Role,
-          approverId: approverId,
-        },
-        create: {
-          userId: registrationId,
-          role: assignedRole as Role,
-          approverId: approverId,
-        },
-      }),
-    ]);
-
-    return NextResponse.json({ message: "Success! Forwarded to Admin" });
-  } catch (error) {
-    console.error("COORDINATOR ACTION ERROR:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
-}
-
-export async function GET(req: Request) {
-  try {
-    const cookieHeader = req.headers.get("cookie") || "";
-
-    const approverId = cookieHeader
-      .split(";")
-      .find((c) => c.trim().startsWith("userId="))
-      ?.split("=")[1]
-      ?.trim();
-
-    const role = cookieHeader
-      .split(";")
-      .find((c) => c.trim().startsWith("role="))
-      ?.split("=")[1]
-      ?.trim();
-
-    if (!approverId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (role !== "COORDINATOR" && role !== "RLDC_COORDINATOR") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // Fetch all approvals actioned by this coordinator
-    const actions = await prisma.approval.findMany({
+    // 3. Find the RLDC_ADMIN whose entity.rldc matches the user's rldc
+    const matchingAdmin = await prisma.user.findFirst({
       where: {
-        approverId,
-        status: "CoordinatorApproved",
+        role: {
+          role: "RLDC_ADMIN",
+        },
+        entity: {
+          rldc: userRldc,
+        },
+        // Only consider activated admins
+        approvals: {
+          some: {
+            status: "Activated",
+          },
+        },
       },
       include: {
-        user: {
-          include: { profile: true, role: true },
-        },
+        entity: true,
+        role: true,
       },
+    });
+
+    if (!matchingAdmin) {
+      return NextResponse.json(
+        {
+          error: `No active RLDC Admin found for region: ${userRldc}. Please contact the Super Admin.`,
+        },
+        { status: 404 }
+      );
+    }
+
+    console.log(`[FORWARD] Matched admin: ${matchingAdmin.id} (${matchingAdmin.username}) for ${userRldc}`);
+
+    // 4. Find the latest pending approval for this user
+    const approval = await prisma.approval.findFirst({
+      where: { userId: registrationId, status: "Pending" },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ success: true, actions });
+    if (!approval) {
+      return NextResponse.json(
+        { error: "No pending approval found for this user" },
+        { status: 404 }
+      );
+    }
+
+    // 5. Update approval — status → CoordinatorApproved, approverId → matching RLDC admin
+    await prisma.approval.update({
+      where: { id: approval.id },
+      data: {
+        status: "CoordinatorApproved",
+        approverId: matchingAdmin.id,   // ← routed to the correct RLDC admin
+        remarks: remarks || null,
+      },
+    });
+
+    // 6. Optionally update role assignment
+    if (assignedRole) {
+      await prisma.roleAssignment.updateMany({
+        where: { userId: registrationId },
+        data: { role: assignedRole },
+      });
+    }
+
+    return NextResponse.json(
+      {
+        message: `Request forwarded to ${userRldc} Admin successfully`,
+        routedTo: {
+          adminId: matchingAdmin.id,
+          adminUsername: matchingAdmin.username,
+          rldc: userRldc,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error("COORDINATOR ACTION FETCH ERROR:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("COORDINATOR ACTION ERROR:", error);
+    return NextResponse.json(
+      { error: "Failed to forward request" },
+      { status: 500 }
+    );
   }
 }

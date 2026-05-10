@@ -48,10 +48,23 @@ export async function POST(req: Request) {
 
     // 1. Validation
     if (!identifier || !password || !captcha || !role) {
+      console.log("❌ [1] Missing fields");
       return NextResponse.json({ message: "Missing credentials" }, { status: 400 });
     }
 
-    // 2. Find User
+    // 2. Verify CAPTCHA with Google
+    const captchaRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${captcha}`,
+    });
+    const captchaData = await captchaRes.json();
+    if (!captchaData.success) {
+      console.log("❌ [2] CAPTCHA failed");
+      return NextResponse.json({ message: "CAPTCHA verification failed" }, { status: 400 });
+    }
+
+    // 3. Find User
     const user = await prisma.user.findFirst({
       where: {
         OR: [{ username: identifier }, { profile: { email: identifier } }],
@@ -60,30 +73,50 @@ export async function POST(req: Request) {
     });
 
     if (!user || !(await verifyPassword(password, user.password))) {
+      console.log("❌ [3] Invalid credentials");
       return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
     }
 
-    // 3. Verify Role
+    // 4. Verify Role
+    const VALID_ROLES = ["USER", "RLDC_COORDINATOR", "RLDC_ADMIN", "SUPER_ADMIN"];
+    if (!VALID_ROLES.includes(role)) {
+      console.log("❌ [4] Invalid role string");
+      return NextResponse.json({ message: "Invalid role selected" }, { status: 403 });
+    }
+
     const roleAssignment = await prisma.roleAssignment.findUnique({
       where: { userId: user.id },
     });
 
-    if (!roleAssignment || roleAssignment.role !== role) {
-      return NextResponse.json({ message: "Invalid role selected" }, { status: 403 });
+    if (!roleAssignment) {
+      console.log("❌ [5] No role assignment found");
+      return NextResponse.json({ message: "No role assigned to this user" }, { status: 403 });
     }
+
+    if (roleAssignment.role !== role) {
+      console.log("❌ [5] Role mismatch");
+      return NextResponse.json(
+        { message: `This account is not registered as ${role.replaceAll("_", " ")}` },
+        { status: 403 }
+      );
+    }
+
+    // 5. Check Activation
     const approval = await prisma.approval.findFirst({
-  where: { userId: user.id },
-  orderBy: { createdAt: "desc" },
-});
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    });
 
-if (!approval || approval.status !== "Activated") {
-  return NextResponse.json(
-    { message: "Your account is not activated yet" },
-    { status: 403 }
-  );
-}
+    if (!approval || approval.status !== "Activated") {
+      console.log("❌ [6] Account not activated. Status:", approval?.status);
+      return NextResponse.json(
+        { message: "Your account is not activated yet" },
+        { status: 403 }
+      );
+    }
+    console.log("✅ All checks passed — setting cookies");
 
-    // 4. Build Response
+    // 6. Build Response
     const cookieAge = rememberMe ? REMEMBER_ME_AGE : DEFAULT_AGE;
 
     const response = NextResponse.json({
@@ -92,7 +125,7 @@ if (!approval || approval.status !== "Activated") {
       user: { userId: user.id, role: roleAssignment.role },
     });
 
-    // 5. Handle Remember Me — create persistent token
+    // 7. Handle Remember Me
     let persistentToken: string | undefined;
 
     if (rememberMe) {
@@ -109,7 +142,7 @@ if (!approval || approval.status !== "Activated") {
       });
     }
 
-    // 6. Set Cookies
+    // 8. Set Cookies
     setAuthCookies(response, user.id, roleAssignment.role, cookieAge, persistentToken);
 
     return response;
@@ -135,14 +168,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "No remember token" }, { status: 401 });
     }
 
-    const stored = await prisma.userToken.findUnique({
-      where: { token },
-    });
+    const stored = await prisma.userToken.findUnique({ where: { token } });
 
     if (!stored || stored.expiresAt < new Date()) {
-      if (stored) {
-        await prisma.userToken.delete({ where: { token } });
-      }
+      if (stored) await prisma.userToken.delete({ where: { token } });
 
       const response = NextResponse.json(
         { message: "Session expired, please log in again" },

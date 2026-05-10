@@ -1,209 +1,665 @@
 "use client";
-import { useState } from "react";
 
-const adminQueue = [
-  { id: "REG-2025-00847", name: "Rajesh Kumar Sharma", type: "Station", timeAgo: "2 days ago" },
-  { id: "REG-2025-00839", name: "Suresh Meena", type: "Entity", timeAgo: "1 day ago" },
-];
 
-const steps = ["Submission", "Coord. Review", "Admin Approval", "Activation"];
+import { useState, useEffect, useReducer } from "react";
 
-export default function AdminApprovalPage() {
-  const [selectedId, setSelectedId] = useState("REG-2025-00847");
-  const [remarks, setRemarks] = useState("");
-  const currentStep: number = 2; // 0-indexed
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Region = "NR" | "WR" | "SR" | "ER" | "NER";
+
+interface AdminSession {
+  id: string; fullName: string; email: string; region: Region; rldc: string;
+}
+interface QueueItem {
+  id: string; regNumber: string; applicantName: string;
+  registrationType: string; coordinatorApprovedAt: string;
+}
+interface RegistrationRecord {
+  id: string; regNumber: string; applicantName: string;
+  applicantEmail: string; applicantPhone: string;
+  registrationType: string; entityName: string; entityType: string;
+  assignedRole: string; documents: string[];
+  coordinator: { id: string; name: string; email: string } | null;
+  coordinatorRemarks: string | null; coordinatorApprovedAt: string | null; submittedAt: string;
+}
+type SidebarTab = "requests" | "create-coordinator";
+type ActionState = "idle" | "approving" | "rejecting" | "done-approve" | "done-reject" | "error";
+
+// ─── Region metadata ──────────────────────────────────────────────────────────
+
+const REGION_META: Record<Region, { label: string; full: string; color: string; bg: string; border: string }> = {
+  NR:  { label: "NR",  full: "Northern Region",      color: "#3b82f6", bg: "#eff6ff", border: "#bfdbfe" },
+  WR:  { label: "WR",  full: "Western Region",       color: "#8b5cf6", bg: "#f5f3ff", border: "#ddd6fe" },
+  SR:  { label: "SR",  full: "Southern Region",      color: "#10b981", bg: "#f0fdf4", border: "#bbf7d0" },
+  ER:  { label: "ER",  full: "Eastern Region",       color: "#f59e0b", bg: "#fffbeb", border: "#fde68a" },
+  NER: { label: "NER", full: "North-Eastern Region", color: "#ef4444", bg: "#fef2f2", border: "#fecaca" },
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const hrs = Math.floor(diff / 3_600_000);
+  if (hrs < 1) return "just now";
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+function fmtDate(iso: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function fmt(s: string): string {
+  return s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// ─── Progress Bar ─────────────────────────────────────────────────────────────
+
+const STEPS = ["Submission", "Coord. Review", "Admin Approval", "Activation"];
+
+function ProgressBar() {
+  return (
+    <div style={{ background: "white", borderRadius: 12, border: "1px solid #e2e8f0", padding: "18px 24px 14px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start" }}>
+        {STEPS.map((label, i) => {
+          const done = i < 2, active = i === 2;
+          return (
+            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+              {i < 3 && <div style={{ position: "absolute", top: 14, left: "50%", width: "100%", height: 2, background: done ? "#0f172a" : "#e2e8f0", zIndex: 0 }} />}
+              <div style={{
+                width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700, position: "relative", zIndex: 1,
+                border: `2px solid ${done || active ? "#0f172a" : "#cbd5e1"}`,
+                background: done ? "#0f172a" : "#f8fafc", color: done ? "#fff" : active ? "#0f172a" : "#94a3b8",
+                boxShadow: active ? "0 0 0 4px #e2e8f0" : "none", fontFamily: "'DM Mono', monospace",
+              }}>
+                {done ? <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> : i + 1}
+              </div>
+              <span style={{ marginTop: 7, fontSize: 10, fontWeight: active ? 700 : 500, color: done || active ? "#0f172a" : "#94a3b8", textAlign: "center", letterSpacing: "0.05em", textTransform: "uppercase" as const, fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ textAlign: "center", fontSize: 11, color: "#64748b", marginTop: 12, paddingTop: 12, borderTop: "1px solid #f1f5f9", fontFamily: "'DM Sans', sans-serif" }}>
+        Step 3 of 4 — Pending final admin approval
+      </p>
+    </div>
+  );
+}
+
+// ─── Create Coordinator Panel ─────────────────────────────────────────────────
+
+interface CoordForm {
+  fullName: string; username: string; password: string;
+  email: string; altEmail: string; phone: string; altPhone: string; designation: string;
+}
+const EMPTY: CoordForm = { fullName: "", username: "", password: "", email: "", altEmail: "", phone: "", altPhone: "", designation: "RLDC Coordinator" };
+
+const labelStyle: React.CSSProperties = { display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 5, fontFamily: "'DM Sans', sans-serif" };
+const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", border: "1.5px solid #e2e8f0", borderRadius: 9, fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box" as const };
+
+function CreateCoordinatorPanel({ session }: { session: AdminSession }) {
+  const meta = REGION_META[session.region];
+  const [form, setForm] = useState<CoordForm>(EMPTY);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showPass, setShowPass] = useState(false);
+
+  function field(k: keyof CoordForm, v: string) { setForm(f => ({ ...f, [k]: v })); }
+
+  async function submit() {
+    setError("");
+    if (!form.fullName || !form.username || !form.password || !form.email || !form.phone) {
+      setError("Please fill all required fields."); return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/coordinators", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, adminId: session.id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess(`Coordinator "${form.fullName}" created for ${meta.full}.`);
+        setForm(EMPTY);
+        setTimeout(() => setSuccess(""), 7000);
+      } else { setError(data.message || "Failed to create coordinator."); }
+    } catch { setError("Something went wrong."); }
+    finally { setSubmitting(false); }
+  }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-
-      {/* ── SIDEBAR ── */}
-      <aside className="w-64 min-h-screen bg-white border-r border-slate-100 shadow-sm flex flex-col flex-shrink-0">
-        <div className="px-5 py-5 border-b border-slate-100">
-          <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Approval Queue</p>
-          <h2 className="text-sm font-bold text-slate-700">Admin Review</h2>
+    <div style={{ flex: 1, overflowY: "auto" }}>
+      {/* Region banner */}
+      <div style={{ background: meta.bg, borderBottom: `2px solid ${meta.border}`, padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: meta.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <svg width="16" height="16" fill="none" stroke="white" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
         </div>
-        <div className="flex-1 overflow-y-auto p-3 space-y-1">
-          {adminQueue.map((req) => (
-            <button
-              key={req.id}
-              onClick={() => setSelectedId(req.id)}
-              className={`w-full text-left px-3 py-3 rounded-lg border transition-all ${
-                selectedId === req.id
-                  ? "bg-blue-50 border-blue-200"
-                  : "bg-white border-transparent hover:bg-slate-50 hover:border-slate-200"
-              }`}
-            >
-              <p className="text-[10px] font-mono text-slate-400 mb-0.5">{req.id}</p>
-              <p className="text-xs font-semibold text-slate-700 mb-1.5">{req.name}</p>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">{req.type}</span>
-                <span className="text-[10px] text-slate-400">{req.timeAgo}</span>
+        <div>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: meta.color, margin: "0 0 2px", fontFamily: "'DM Sans', sans-serif" }}>Region-Locked</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{session.rldc} — {meta.full}</p>
+          <p style={{ fontSize: 11, color: "#64748b", margin: "2px 0 0", fontFamily: "'DM Sans', sans-serif" }}>Coordinators assigned to {meta.label} only</p>
+        </div>
+      </div>
+
+      <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+        {success && (
+          <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 9, padding: "10px 13px", fontSize: 12, color: "#15803d", display: "flex", gap: 8, alignItems: "center", fontFamily: "'DM Sans', sans-serif" }}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+            {success}
+          </div>
+        )}
+        {error && <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 9, padding: "10px 13px", fontSize: 12, color: "#dc2626", fontFamily: "'DM Sans', sans-serif" }}>{error}</div>}
+
+        {/* Zone (locked) */}
+        <div>
+          <label style={labelStyle}>RLDC Zone <span style={{ fontWeight: 400, color: "#94a3b8" }}>(auto-assigned)</span></label>
+          <div style={{ ...inputStyle, background: meta.bg, border: `1.5px solid ${meta.border}`, color: meta.color, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, cursor: "not-allowed" }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: meta.color, display: "inline-block" }} />
+            {session.rldc} — {meta.full}
+            <svg width="12" height="12" fill="none" stroke={meta.color} strokeWidth="2" viewBox="0 0 24 24" style={{ marginLeft: "auto", opacity: 0.6 }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
+          </div>
+        </div>
+
+        <div>
+          <label style={labelStyle}>Full Name *</label>
+          <input style={inputStyle} placeholder="e.g. Priya Verma" value={form.fullName} onChange={e => field("fullName", e.target.value)} disabled={submitting} />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <label style={labelStyle}>Username *</label>
+            <input style={inputStyle} placeholder="coord_nr_01" value={form.username} onChange={e => field("username", e.target.value)} disabled={submitting} />
+          </div>
+          <div>
+            <label style={labelStyle}>Password *</label>
+            <div style={{ position: "relative" }}>
+              <input type={showPass ? "text" : "password"} style={{ ...inputStyle, paddingRight: 36 }} placeholder="••••••••" value={form.password} onChange={e => field("password", e.target.value)} disabled={submitting} />
+              <button type="button" onClick={() => setShowPass(p => !p)} style={{ position: "absolute", right: 9, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 0, display: "flex" }}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  {showPass ? <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /> : <><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></>}
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label style={labelStyle}>Official Email *</label>
+          <input type="email" style={inputStyle} placeholder="name@rldc.gov.in" value={form.email} onChange={e => field("email", e.target.value)} disabled={submitting} />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <label style={labelStyle}>Phone *</label>
+            <input style={inputStyle} placeholder="9876543210" value={form.phone} onChange={e => field("phone", e.target.value)} disabled={submitting} />
+          </div>
+          <div>
+            <label style={labelStyle}>Designation</label>
+            <input style={inputStyle} value={form.designation} onChange={e => field("designation", e.target.value)} disabled={submitting} />
+          </div>
+        </div>
+
+        <div>
+          <label style={labelStyle}>Alternate Email <span style={{ fontWeight: 400, color: "#94a3b8" }}>(optional)</span></label>
+          <input type="email" style={inputStyle} placeholder="alt@rldc.gov.in" value={form.altEmail} onChange={e => field("altEmail", e.target.value)} disabled={submitting} />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Alternate Phone <span style={{ fontWeight: 400, color: "#94a3b8" }}>(optional)</span></label>
+          <input style={inputStyle} placeholder="9876543210" value={form.altPhone} onChange={e => field("altPhone", e.target.value)} disabled={submitting} />
+        </div>
+
+        <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 9, padding: "10px 13px", fontSize: 11.5, color: "#0369a1", lineHeight: 1.55, fontFamily: "'DM Sans', sans-serif" }}>
+          <strong>On creation:</strong> Account activates immediately and is scoped to <strong>{meta.full}</strong> only.
+        </div>
+
+        <button onClick={submit} disabled={submitting}
+          style={{ width: "100%", padding: "11px 0", background: submitting ? "#64748b" : "#0f172a", border: "none", borderRadius: 9, color: "white", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.02em" }}>
+          {submitting ? "Creating…" : `Create ${meta.label} Coordinator ↗`}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+export default function AdminApprovalPage() {
+  const [session, setSession] = useState<AdminSession | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [tab, setTab] = useState<SidebarTab>("requests");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) throw new Error("Session expired");
+        const data = await res.json();
+        if (!cancelled) setSession(data.admin ?? null);
+      } catch { if (!cancelled) setSession(null); }
+      finally { if (!cancelled) setSessionLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // ── Queue reducer ──
+  type QueueState = { items: QueueItem[]; selectedId: string | null; loading: boolean; error: string | null; };
+  type QueueAction = { type: "LOADED"; items: QueueItem[] } | { type: "ERROR"; message: string } | { type: "SELECT"; id: string | null };
+
+  function queueReducer(s: QueueState, a: QueueAction): QueueState {
+    switch (a.type) {
+      case "LOADED": return { items: a.items, selectedId: a.items[0]?.id ?? null, loading: false, error: null };
+      case "ERROR":  return { ...s, loading: false, error: a.message };
+      case "SELECT": return { ...s, selectedId: a.id };
+    }
+  }
+  const [queueState, dispatchQueue] = useReducer(queueReducer, { items: [], selectedId: null, loading: true, error: null });
+  const { items: queue, selectedId, loading: queueLoading, error: queueError } = queueState;
+
+  // ── Record reducer ──
+  type RecordState = { data: RegistrationRecord | null; loading: boolean; error: string | null; remarks: string; actionState: ActionState; actionError: string | null; };
+  type RecordAction =
+    | { type: "FETCH_START" } | { type: "FETCH_OK"; data: RegistrationRecord } | { type: "FETCH_ERR"; message: string }
+    | { type: "SET_REMARKS"; value: string }
+    | { type: "ACTION_START"; action: "approve" | "reject" } | { type: "ACTION_OK"; action: "approve" | "reject" } | { type: "ACTION_ERR"; message: string };
+
+  function recordReducer(s: RecordState, a: RecordAction): RecordState {
+    switch (a.type) {
+      case "FETCH_START": return { data: null, loading: true, error: null, remarks: "", actionState: "idle", actionError: null };
+      case "FETCH_OK":    return { ...s, data: a.data, loading: false };
+      case "FETCH_ERR":   return { ...s, error: a.message, loading: false };
+      case "SET_REMARKS": return { ...s, remarks: a.value };
+      case "ACTION_START": return { ...s, actionState: a.action === "approve" ? "approving" : "rejecting", actionError: null };
+      case "ACTION_OK":    return { ...s, actionState: a.action === "approve" ? "done-approve" : "done-reject" };
+      case "ACTION_ERR":   return { ...s, actionState: "error", actionError: a.message };
+    }
+  }
+  const [recState, dispatchRec] = useReducer(recordReducer, { data: null, loading: false, error: null, remarks: "", actionState: "idle", actionError: null });
+  const { data: record, loading: recordLoading, error: recordError, remarks, actionState, actionError } = recState;
+
+  useEffect(() => {
+    if (!session) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/registrations/coordinator-approved?region=${session.rldc}`);
+        if (!res.ok) throw new Error("Failed to load queue");
+        const items = await res.json() as QueueItem[];
+        if (!cancelled) dispatchQueue({ type: "LOADED", items });
+      } catch (e) {
+        if (!cancelled) dispatchQueue({ type: "ERROR", message: e instanceof Error ? e.message : "Failed to load queue." });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [session]);
+  useEffect(() => {
+    if (!selectedId) return;
+    dispatchRec({ type: "FETCH_START" });
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/registrations/${selectedId}`);
+        if (!res.ok) throw new Error("Failed to load record");
+        const data = await res.json() as RegistrationRecord;
+        if (!cancelled) dispatchRec({ type: "FETCH_OK", data });
+      } catch (e) {
+        if (!cancelled) dispatchRec({ type: "FETCH_ERR", message: e instanceof Error ? e.message : "Failed to load record." });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedId]);
+
+  async function submitReview(action: "approve" | "reject") {
+    if (!selectedId || actionState !== "idle") return;
+    if (action === "reject" && !remarks.trim()) return;
+    dispatchRec({ type: "ACTION_START", action });
+    try {
+      const res = await fetch(`/api/registrations/${selectedId}/admin-review`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, adminId: session?.id, remarks }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Unknown error"); }
+      dispatchQueue({ type: "LOADED", items: queue.filter(x => x.id !== selectedId) });
+      dispatchRec({ type: "ACTION_OK", action });
+    } catch (e) {
+      dispatchRec({ type: "ACTION_ERR", message: e instanceof Error ? e.message : "An unexpected error occurred." });
+    }
+  }
+
+  const regionMeta = session ? REGION_META[session.region] : null;
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');`}</style>
+
+      <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+
+        {/* ── Sidebar ── */}
+        <aside style={{ width: 300, background: "white", borderRight: "1px solid #e2e8f0", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+
+          {/* Admin identity */}
+          <div style={{ padding: "20px 18px 14px", borderBottom: "1px solid #f1f5f9" }}>
+            {sessionLoading ? (
+              <div style={{ height: 48, background: "#f1f5f9", borderRadius: 10 }} />
+            ) : session && regionMeta ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 11, background: regionMeta.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "white", fontFamily: "'DM Mono', monospace" }}>{session.region}</span>
+                </div>
+                <div>
+                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{session.fullName}</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{session.rldc} Admin</p>
+                </div>
               </div>
-            </button>
-          ))}
-        </div>
-      </aside>
+            ) : (
+              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: "12px 14px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, color: "#dc2626" }}>Session Error</p>
+                <p style={{ margin: 0, fontSize: 11, color: "#7f1d1d", lineHeight: 1.5 }}>Unable to load admin session. Please refresh or log in again.</p>
+              </div>
+            )}
+          </div>
 
-      {/* ── MAIN ── */}
-      <main className="flex-1 p-8 overflow-y-auto max-w-5xl">
-        <div className="space-y-6">
-
-          {/* PROGRESS BAR — matches ProgressBar component style */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100 px-6" style={{ paddingTop: "0.75rem", paddingBottom: "0.5rem" }}>
-            <div style={{ display: "flex", alignItems: "flex-start" }}>
-              {steps.map((label, i) => {
-                const isCompleted = i < currentStep;
-                const isActive = i === currentStep;
-                return (
-                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
-                    {/* Connector line */}
-                    {i < steps.length - 1 && (
-                      <div style={{
-                        position: "absolute", top: 16, left: "50%", width: "100%", height: 2,
-                        background: isCompleted ? "#1D4ED8" : "#E2E8F0", zIndex: 0, transition: "background 0.3s",
-                      }} />
-                    )}
-                    {/* Circle */}
-                    <div style={{
-                      width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center",
-                      justifyContent: "center", fontSize: 13, fontWeight: 600, position: "relative", zIndex: 1,
-                      border: `2px solid ${isCompleted ? "#1D4ED8" : isActive ? "#1D4ED8" : "#CBD5E1"}`,
-                      background: isCompleted ? "#1D4ED8" : isActive ? "#EFF6FF" : "#F8FAFC",
-                      color: isCompleted ? "#fff" : isActive ? "#1D4ED8" : "#94A3B8",
-                      transition: "all 0.3s",
-                      boxShadow: isActive ? "0 0 0 4px #DBEAFE" : "none",
-                    }}>
-                      {isCompleted ? (
-                        <svg width="14" height="14" fill="none" stroke="#fff" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : i + 1}
-                    </div>
-                    {/* Label */}
-                    <span style={{
-                      marginTop: 8, fontSize: 11, fontWeight: isActive ? 700 : 500,
-                      color: isCompleted ? "#1D4ED8" : isActive ? "#1E3A5F" : "#94A3B8",
-                      textAlign: "center", letterSpacing: "0.03em", textTransform: "uppercase",
-                    }}>
-                      {label}
+          {/* Tab bar */}
+          <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
+            {([
+              { key: "requests" as SidebarTab, label: "Requests" },
+              { key: "create-coordinator" as SidebarTab, label: "Add Coord." },
+            ]).map(t => {
+              const active = tab === t.key;
+              return (
+                <button key={t.key} onClick={() => setTab(t.key)} style={{
+                  flex: 1, padding: "11px 8px", border: "none", borderBottom: `2.5px solid ${active ? "#0f172a" : "transparent"}`,
+                  background: active ? "white" : "transparent", cursor: "pointer",
+                  fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" as const,
+                  color: active ? "#0f172a" : "#94a3b8", fontFamily: "'DM Sans', sans-serif",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                }}>
+                  {t.label}
+                  {t.key === "requests" && !queueLoading && queue.length > 0 && (
+                    <span style={{ background: "#0f172a", color: "white", fontSize: 9, fontWeight: 800, padding: "1px 6px", borderRadius: 99, lineHeight: 1.7, fontFamily: "'DM Mono', monospace" }}>
+                      {queue.length}
                     </span>
-                  </div>
-                );
-              })}
-            </div>
-            {/* Step description */}
-            <div style={{
-              marginTop: 16, textAlign: "center", fontSize: 12, fontWeight: 500, color: "#64748B",
-              borderTop: "1px solid #F1F5F9", paddingTop: 12, letterSpacing: "0.01em",
-            }}>
-              {currentStep === 0 && "Step 1 of 4 — Fill in your registration form"}
-              {currentStep === 1 && "Step 2 of 4 — Awaiting coordinator review"}
-              {currentStep === 2 && "Step 3 of 4 — Awaiting admin approval"}
-              {currentStep === 3 && "Step 4 of 4 — Account activation"}
-            </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* MAIN CARD — same shadow/border as RegisterPage section cards */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100">
-
-            {/* Card Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-800">Final Approval — RLDC Admin</h3>
-                <p className="text-[11px] text-slate-400 italic mt-0.5">Review coordinator-recommended request and grant final approval or reject.</p>
+          {/* Tab content */}
+          {tab === "requests" ? (
+            <>
+              <div style={{ padding: "12px 18px 8px", borderBottom: "1px solid #f1f5f9" }}>
+                <p style={{ margin: 0, fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "#94a3b8" }}>Approval Queue</p>
+                {!queueLoading && !queueError && (
+                  <p style={{ margin: "2px 0 0", fontSize: 12, color: "#64748b" }}>{queue.length} pending {queue.length === 1 ? "request" : "requests"}</p>
+                )}
               </div>
-              <span className="text-[10px] bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">Step 3 of 4</span>
+              <div style={{ flex: 1, overflowY: "auto", padding: 8 }}>
+                {queueLoading ? [1, 2, 3].map(i => <div key={i} style={{ height: 68, background: "#f1f5f9", borderRadius: 10, marginBottom: 6 }} />) :
+                  queueError ? <div style={{ padding: "32px 12px", textAlign: "center" }}><p style={{ fontSize: 12, color: "#f87171" }}>{queueError}</p></div> :
+                  queue.length === 0 ? (
+                    <div style={{ padding: "48px 12px", textAlign: "center" }}>
+                      <div style={{ fontSize: 32, marginBottom: 10 }}>✅</div>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: "#475569", margin: "0 0 4px" }}>All caught up</p>
+                      <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>No pending requests</p>
+                    </div>
+                  ) : queue.map(req => {
+                    const active = selectedId === req.id;
+                    return (
+                      <button key={req.id} onClick={() => dispatchQueue({ type: "SELECT", id: req.id })} style={{
+                        width: "100%", textAlign: "left", padding: "11px 13px", borderRadius: 10, marginBottom: 5, cursor: "pointer",
+                        border: `1.5px solid ${active ? "#0f172a" : "#f1f5f9"}`,
+                        background: active ? "#0f172a" : "white",
+                        fontFamily: "'DM Sans', sans-serif", transition: "all .15s",
+                      }}>
+                        <p style={{ margin: "0 0 3px", fontSize: 10, fontFamily: "'DM Mono', monospace", color: active ? "#94a3b8" : "#94a3b8" }}>{req.regNumber}</p>
+                        <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: active ? "white" : "#0f172a", lineHeight: 1.3 }}>{req.applicantName}</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ fontSize: 10, background: active ? "rgba(255,255,255,0.15)" : "#f1f5f9", color: active ? "white" : "#64748b", padding: "2px 7px", borderRadius: 5, fontWeight: 700, textTransform: "uppercase" as const }}>
+                            {req.registrationType.charAt(0) + req.registrationType.slice(1).toLowerCase()}
+                          </span>
+                          <span style={{ fontSize: 10, color: active ? "#94a3b8" : "#94a3b8" }}>{relativeTime(req.coordinatorApprovedAt)}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+              <div style={{ padding: "10px 16px", borderTop: "1px solid #f1f5f9", background: "#f8fafc", display: "flex", alignItems: "center", gap: 7 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
+                <span style={{ fontSize: 10, color: "#94a3b8" }}>Coordinator-approved only</span>
+              </div>
+            </>
+          ) : session ? <CreateCoordinatorPanel session={session} /> : (
+            <div style={{ padding: 24, textAlign: "center" }}><p style={{ fontSize: 12, color: "#94a3b8" }}>Loading session…</p></div>
+          )}
+        </aside>
+
+        {/* ── Main Content ── */}
+        <main style={{ flex: 1, overflowY: "auto", padding: "32px 36px" }}>
+          <div style={{ maxWidth: 820, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
+
+            {/* Page title */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <p style={{ margin: "0 0 4px", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#94a3b8" }}>RLDC Portal</p>
+                <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.3px" }}>Registration Approvals</h1>
+              </div>
+              {session && regionMeta && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: regionMeta.bg, border: `1.5px solid ${regionMeta.border}`, borderRadius: 10, padding: "7px 14px" }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: regionMeta.color, display: "inline-block" }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: regionMeta.color, fontFamily: "'DM Mono', monospace" }}>{session.rldc}</span>
+                  <span style={{ fontSize: 11, color: "#64748b" }}>— {regionMeta.full}</span>
+                </div>
+              )}
             </div>
 
-            <div className="px-6 py-6 space-y-8">
+            <ProgressBar />
 
-              {/* REQUEST SUMMARY */}
-              <div className="grid grid-cols-2 gap-0 rounded-lg border border-slate-100 overflow-hidden">
-                {[
-                  { label: "Applicant", value: "Rajesh Kumar Sharma", type: "text" },
-                  { label: "Status", value: "Awaiting Approval", type: "badge-orange" },
-                  { label: "Assigned Role", value: "Authorized User", type: "badge-blue" },
-                  { label: "Coordinator Remarks", value: "Entity documents verified. Role updated.", type: "italic" },
-                ].map((cell, i) => (
-                  <div
-                    key={i}
-                    className={`px-4 py-3 bg-slate-50 ${i < 2 ? "border-b border-slate-100" : ""} ${i % 2 === 0 ? "border-r border-slate-100" : ""}`}
-                  >
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">{cell.label}</p>
-                    {cell.type === "text" && (
-                      <p className="text-xs font-semibold text-slate-700">{cell.value}</p>
-                    )}
-                    {cell.type === "badge-orange" && (
-                      <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded font-bold">{cell.value}</span>
-                    )}
-                    {cell.type === "badge-blue" && (
-                      <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">{cell.value}</span>
-                    )}
-                    {cell.type === "italic" && (
-                      <p className="text-xs text-slate-500 italic">{cell.value}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* TRIGGER SECTION */}
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-3">On Approval — System Will Trigger Both Simultaneously</p>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Email */}
-                  <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-blue-600 text-lg">📧</span>
-                      <h5 className="text-sm font-bold text-blue-900">Activation Email</h5>
-                    </div>
-                    <p className="text-[11px] text-blue-700 font-semibold mb-2">To: rk.sharma@ntpc.gov.in</p>
-                    <p className="text-[10px] text-slate-500 leading-relaxed">
-                      A <span className="font-bold text-slate-600">secure, time-bound activation link</span> (valid 48 hrs) will be sent.
-                    </p>
-                  </div>
-                  {/* OTP */}
-                  <div className="p-4 bg-green-50 border border-green-100 rounded-xl">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-green-600 text-lg">📱</span>
-                      <h5 className="text-sm font-bold text-green-900">OTP to Primary Contact</h5>
-                    </div>
-                    <p className="text-[11px] text-green-700 font-semibold mb-2">To: +91 98765 43210</p>
-                    <p className="text-[10px] text-slate-500 leading-relaxed">
-                      A <span className="font-bold text-slate-600">6-digit OTP</span> will be sent to the registered mobile number.
-                    </p>
-                  </div>
+            {/* Action result banners */}
+            {actionState === "done-approve" && (
+              <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 20 }}>✅</span>
+                <div>
+                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#15803d" }}>Request Approved</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "#16a34a" }}>Activation email and OTP dispatched. Select another request from the queue.</p>
                 </div>
               </div>
-
-              {/* ADMIN REMARKS + ACTIONS */}
-              <div className="pt-6 border-t border-slate-100 space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-                    Admin Remarks{" "}
-                    <span className="normal-case tracking-normal font-normal text-slate-400">(required if rejecting)</span>
-                  </label>
-                  <textarea
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    placeholder="Enter admin remarks..."
-                    className="w-full p-3 bg-white border border-slate-200 rounded-lg text-sm h-24 focus:ring-2 focus:ring-blue-500 outline-none resize-none text-slate-700 placeholder:text-slate-300"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-1">
-                  <button className="px-6 py-2.5 border border-slate-300 text-slate-600 font-bold rounded-lg hover:bg-slate-50 transition text-sm">
-                    Reject Request
-                  </button>
-                  <button className="px-6 py-2.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white font-bold rounded-lg transition-all text-sm shadow-md shadow-blue-200 flex items-center gap-2 uppercase tracking-wider">
-                    Grant Final Approval ↗
-                  </button>
+            )}
+            {actionState === "done-reject" && (
+              <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 20 }}>❌</span>
+                <div>
+                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#dc2626" }}>Request Rejected</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "#ef4444" }}>The applicant has been notified. Select another request from the queue.</p>
                 </div>
               </div>
+            )}
+            {actionState === "error" && actionError && (
+              <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 20 }}>⚠️</span>
+                <div>
+                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#92400e" }}>Action Failed</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "#b45309" }}>{actionError}</p>
+                </div>
+              </div>
+            )}
 
-            </div>
+            {/* Empty state */}
+            {!selectedId && !actionState.startsWith("done") && (
+              <div style={{ background: "white", borderRadius: 14, border: "1px solid #e2e8f0", padding: "80px 24px", textAlign: "center" }}>
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+                  <svg width="26" height="26" fill="none" stroke="#94a3b8" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 600, color: "#475569" }}>No request selected</p>
+                <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Select a coordinator-approved request from the <strong>Requests</strong> tab to begin review.</p>
+              </div>
+            )}
+
+            {/* Record card */}
+            {selectedId && (
+              <div style={{ background: "white", borderRadius: 14, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+
+                {/* Card header */}
+                <div style={{ padding: "16px 24px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8fafc" }}>
+                  <div>
+                    <h2 style={{ margin: "0 0 3px", fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Final Approval — RLDC Admin</h2>
+                    <p style={{ margin: 0, fontSize: 11, color: "#94a3b8", fontStyle: "italic" }}>Review the coordinator-forwarded request and grant or reject final approval.</p>
+                  </div>
+                  <span style={{ fontSize: 10, background: "#f1f5f9", color: "#64748b", border: "1px solid #e2e8f0", padding: "4px 11px", borderRadius: 99, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, fontFamily: "'DM Mono', monospace" }}>
+                    Step 3 / 4
+                  </span>
+                </div>
+
+                {/* Skeleton */}
+                {recordLoading && (
+                  <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+                    {[100, 72, 88].map((h, i) => <div key={i} style={{ height: h, background: "#f1f5f9", borderRadius: 10 }} />)}
+                  </div>
+                )}
+
+                {recordError && (
+                  <div style={{ padding: "48px 24px", textAlign: "center" }}>
+                    <p style={{ fontSize: 13, color: "#f87171" }}>{recordError}</p>
+                  </div>
+                )}
+
+                {!recordLoading && !recordError && record && (
+                  <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 24 }}>
+
+                    {/* Summary grid */}
+                    <section>
+                      <p style={{ margin: "0 0 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" as const, color: "#94a3b8" }}>Request Summary</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", border: "1px solid #f1f5f9", borderRadius: 11, overflow: "hidden" }}>
+                        {[
+                          { label: "Applicant",         value: record.applicantName,           type: "text" },
+                          { label: "Status",            value: "Coordinator Approved",         type: "green" },
+                          { label: "Entity Name",       value: record.entityName,              type: "text" },
+                          { label: "Entity Type",       value: record.entityType,              type: "text" },
+                          { label: "Registration Type", value: fmt(record.registrationType),   type: "blue" },
+                          { label: "Assigned Role",     value: fmt(record.assignedRole),       type: "blue" },
+                          { label: "Submitted",         value: fmtDate(record.submittedAt),    type: "mono" },
+                          { label: "Coord. Approved",   value: fmtDate(record.coordinatorApprovedAt), type: "mono" },
+                        ].map((c, i) => (
+                          <div key={i} style={{ padding: "12px 16px", background: i % 4 < 2 ? "#fafbfc" : "white", borderBottom: i < 6 ? "1px solid #f1f5f9" : "none", borderRight: i % 2 === 0 ? "1px solid #f1f5f9" : "none" }}>
+                            <p style={{ margin: "0 0 5px", fontSize: 9, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" as const, color: "#94a3b8" }}>{c.label}</p>
+                            {c.type === "text" && <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: "#0f172a" }}>{c.value}</p>}
+                            {c.type === "mono" && <p style={{ margin: 0, fontSize: 11.5, fontFamily: "'DM Mono', monospace", color: "#475569" }}>{c.value}</p>}
+                            {c.type === "green" && <span style={{ fontSize: 10.5, background: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "2px 9px", borderRadius: 5, fontWeight: 700 }}>{c.value}</span>}
+                            {c.type === "blue" && <span style={{ fontSize: 10.5, background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "2px 9px", borderRadius: 5, fontWeight: 700 }}>{c.value}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+
+                    {/* Coordinator review */}
+                    <section style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "16px 18px" }}>
+                      <p style={{ margin: "0 0 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" as const, color: "#92400e" }}>Coordinator Review</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 12 }}>
+                        <div>
+                          <p style={{ margin: "0 0 4px", fontSize: 9, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" as const, color: "#94a3b8" }}>Reviewed By</p>
+                          <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{record.coordinator?.name ?? "—"}</p>
+                          {record.coordinator?.email && <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{record.coordinator.email}</p>}
+                        </div>
+                        <div>
+                          <p style={{ margin: "0 0 4px", fontSize: 9, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" as const, color: "#94a3b8" }}>Reviewed At</p>
+                          <p style={{ margin: 0, fontSize: 11.5, fontFamily: "'DM Mono', monospace", color: "#475569" }}>{fmtDate(record.coordinatorApprovedAt)}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p style={{ margin: "0 0 4px", fontSize: 9, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" as const, color: "#94a3b8" }}>Remarks</p>
+                        <p style={{ margin: 0, fontSize: 12, color: "#475569", fontStyle: "italic", lineHeight: 1.55 }}>
+                          {record.coordinatorRemarks ? `"${record.coordinatorRemarks}"` : "No remarks provided."}
+                        </p>
+                      </div>
+                    </section>
+
+                    {/* Documents */}
+                    {record.documents.length > 0 && (
+                      <section>
+                        <p style={{ margin: "0 0 10px", fontSize: 10, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" as const, color: "#94a3b8" }}>Submitted Documents</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                          {record.documents.map(doc => (
+                            <span key={doc} style={{ fontSize: 11.5, background: "#f8fafc", color: "#475569", border: "1px solid #e2e8f0", padding: "5px 12px", borderRadius: 8, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                              <svg width="12" height="12" fill="none" stroke="#94a3b8" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                              {doc}
+                            </span>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
+                    {/* On-approval triggers */}
+                    <section>
+                      <p style={{ margin: "0 0 10px", fontSize: 10, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" as const, color: "#94a3b8" }}>On Approval — Both Triggered Simultaneously</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 12, padding: "14px 16px" }}>
+                          <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 700, color: "#1e3a8a" }}>📧 Activation Email</p>
+                          <p style={{ margin: "0 0 6px", fontSize: 11, color: "#2563eb", fontWeight: 600 }}>To: {record.applicantEmail}</p>
+                          <p style={{ margin: 0, fontSize: 10.5, color: "#64748b", lineHeight: 1.5 }}>A secure, time-bound link (48 hrs) will be sent.</p>
+                        </div>
+                        <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 12, padding: "14px 16px" }}>
+                          <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 700, color: "#14532d" }}>📱 OTP to Mobile</p>
+                          <p style={{ margin: "0 0 6px", fontSize: 11, color: "#16a34a", fontWeight: 600 }}>To: {record.applicantPhone}</p>
+                          <p style={{ margin: 0, fontSize: 10.5, color: "#64748b", lineHeight: 1.5 }}>A 6-digit OTP will be sent to the registered mobile.</p>
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* Admin remarks + actions */}
+                    <section style={{ borderTop: "1px solid #f1f5f9", paddingTop: 20 }}>
+                      <div style={{ marginBottom: 14 }}>
+                        <label style={{ ...labelStyle, marginBottom: 7 }}>
+                          Admin Remarks <span style={{ fontWeight: 400, color: "#94a3b8" }}>(required when rejecting)</span>
+                        </label>
+                        <textarea
+                          value={remarks}
+                          onChange={e => dispatchRec({ type: "SET_REMARKS", value: e.target.value })}
+                          placeholder="Enter your remarks or reason for rejection…"
+                          disabled={actionState !== "idle"}
+                          rows={3}
+                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #e2e8f0", borderRadius: 9, fontSize: 13, color: "#0f172a", background: actionState !== "idle" ? "#f8fafc" : "white", outline: "none", fontFamily: "'DM Sans', sans-serif", resize: "none", lineHeight: 1.6, opacity: actionState !== "idle" ? 0.6 : 1, boxSizing: "border-box" as const }}
+                        />
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10 }}>
+                        {!remarks.trim() && actionState === "idle" && (
+                          <p style={{ margin: 0, fontSize: 10.5, color: "#94a3b8" }}>← Add a remark to enable rejection</p>
+                        )}
+                        <button
+                          onClick={() => submitReview("reject")}
+                          disabled={!remarks.trim() || actionState !== "idle"}
+                          style={{ padding: "9px 20px", border: "1.5px solid #e2e8f0", borderRadius: 9, background: "white", color: "#475569", fontSize: 13, fontWeight: 700, cursor: (!remarks.trim() || actionState !== "idle") ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif", opacity: (!remarks.trim() || actionState !== "idle") ? 0.4 : 1 }}>
+                          {actionState === "rejecting" ? "Rejecting…" : "Reject"}
+                        </button>
+                        <button
+                          onClick={() => submitReview("approve")}
+                          disabled={actionState !== "idle"}
+                          style={{ padding: "9px 22px", background: actionState !== "idle" ? "#475569" : "#0f172a", border: "none", borderRadius: 9, color: "white", fontSize: 13, fontWeight: 700, cursor: actionState !== "idle" ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 7, boxShadow: actionState === "idle" ? "0 2px 8px rgba(15,23,42,0.25)" : "none" }}>
+                          {actionState === "approving" ? "Approving…" : (
+                            <>
+                              Grant Final Approval
+                              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </section>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

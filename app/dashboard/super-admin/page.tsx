@@ -41,7 +41,7 @@ const EMPTY_FORM: FormData = {
   fullName:    "",
   email:       "",
   phone:       "",
-  designation: "RLDC Administrator",
+  designation: "RLDC Admin ",
   region:      "",
 };
 
@@ -160,7 +160,7 @@ export default function SuperAdminDashboard() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
   };
-  const slotsRemainingColor = admins.length >= 5 ? "#94a3b8" : "#f59e0b";
+  // const slotsRemainingColor = admins.length >= 5 ? "#94a3b8" : "#f59e0b";
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', sans-serif" }}>
@@ -222,7 +222,7 @@ export default function SuperAdminDashboard() {
           {[
             { label: "Total RLDC Admins", value: admins.length,       color: "#3b82f6" },
             { label: "Regions Assigned",  value: takenRegions.length, color: "#10b981" },
-            { label: "Slots Remaining",   value: 5 - admins.length,   color: admins.length >= 5 ? "#94a3b8" : "#f59e0b" },
+            // { label: "Slots Remaining",   value: 5 - admins.length,   color: admins.length >= 5 ? "#94a3b8" : "#f59e0b" },
           ].map((s) => (
             <div key={s.label} style={{ background: "white", borderRadius: 12, padding: "20px 24px", border: "1px solid #e2e8f0" }}>
               <div style={{ fontSize: 28, fontWeight: 700, color: s.color, fontFamily: "'DM Mono', monospace" }}>

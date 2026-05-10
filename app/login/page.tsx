@@ -6,12 +6,12 @@ import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
 
 type LoginMode = "username" | "email";
-type Role = "USER" | "COORDINATOR" | "RLDC_ADMIN"|"SUPER_ADMIN";
+type Role = "USER" | "RLDC_COORDINATOR" | "RLDC_ADMIN"|"SUPER_ADMIN";
 
 const ROLE_REDIRECTS: Record<Role, string> = {
   SUPER_ADMIN: "/dashboard/super-admin", 
   RLDC_ADMIN:       "/dashboard/admin",
-  COORDINATOR: "/dashboard/coordinator",
+  RLDC_COORDINATOR: "/dashboard/coordinator",
   USER:        "/dashboard/user",
 };
 
@@ -103,7 +103,7 @@ export default function LoginPage() {
               >
                 <option value="SUPER_ADMIN">Super Admin</option> 
                 <option value="USER">User</option>
-                <option value="COORDINATOR">Coordinator</option>
+                <option value="RLDC_COORDINATOR">RLDC_Coordinator</option>
                 <option value="RLDC_ADMIN">RLDC_Admin</option>
               </select>
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
