@@ -1,7 +1,7 @@
 "use client";
 
-
 import { useState, useEffect, useReducer } from "react";
+import ProgressBar from "@/components/ProgressBar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -50,40 +50,6 @@ function fmtDate(iso: string | null): string {
 }
 function fmt(s: string): string {
   return s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-}
-
-// ─── Progress Bar ─────────────────────────────────────────────────────────────
-
-const STEPS = ["Submission", "Coord. Review", "Admin Approval", "Activation"];
-
-function ProgressBar() {
-  return (
-    <div style={{ background: "white", borderRadius: 12, border: "1px solid #e2e8f0", padding: "18px 24px 14px" }}>
-      <div style={{ display: "flex", alignItems: "flex-start" }}>
-        {STEPS.map((label, i) => {
-          const done = i < 2, active = i === 2;
-          return (
-            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
-              {i < 3 && <div style={{ position: "absolute", top: 14, left: "50%", width: "100%", height: 2, background: done ? "#0f172a" : "#e2e8f0", zIndex: 0 }} />}
-              <div style={{
-                width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 700, position: "relative", zIndex: 1,
-                border: `2px solid ${done || active ? "#0f172a" : "#cbd5e1"}`,
-                background: done ? "#0f172a" : "#f8fafc", color: done ? "#fff" : active ? "#0f172a" : "#94a3b8",
-                boxShadow: active ? "0 0 0 4px #e2e8f0" : "none", fontFamily: "'DM Mono', monospace",
-              }}>
-                {done ? <svg width="12" height="12" fill="none" stroke="#fff" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> : i + 1}
-              </div>
-              <span style={{ marginTop: 7, fontSize: 10, fontWeight: active ? 700 : 500, color: done || active ? "#0f172a" : "#94a3b8", textAlign: "center", letterSpacing: "0.05em", textTransform: "uppercase" as const, fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
-            </div>
-          );
-        })}
-      </div>
-      <p style={{ textAlign: "center", fontSize: 11, color: "#64748b", marginTop: 12, paddingTop: 12, borderTop: "1px solid #f1f5f9", fontFamily: "'DM Sans', sans-serif" }}>
-        Step 3 of 4 — Pending final admin approval
-      </p>
-    </div>
-  );
 }
 
 // ─── Create Coordinator Panel ─────────────────────────────────────────────────
@@ -182,7 +148,9 @@ function CreateCoordinatorPanel({ session }: { session: AdminSession }) {
               <input type={showPass ? "text" : "password"} style={{ ...inputStyle, paddingRight: 36 }} placeholder="••••••••" value={form.password} onChange={e => field("password", e.target.value)} disabled={submitting} />
               <button type="button" onClick={() => setShowPass(p => !p)} style={{ position: "absolute", right: 9, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 0, display: "flex" }}>
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  {showPass ? <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /> : <><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></>}
+                  {showPass
+                    ? <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    : <><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></>}
                 </svg>
               </button>
             </div>
@@ -299,6 +267,7 @@ export default function AdminApprovalPage() {
     })();
     return () => { cancelled = true; };
   }, [session]);
+
   useEffect(() => {
     if (!selectedId) return;
     dispatchRec({ type: "FETCH_START" });
@@ -344,22 +313,28 @@ export default function AdminApprovalPage() {
         {/* ── Sidebar ── */}
         <aside style={{ width: 300, background: "white", borderRight: "1px solid #e2e8f0", display: "flex", flexDirection: "column", flexShrink: 0 }}>
 
-          {/* Admin identity */}
-          <div style={{ padding: "20px 18px 14px", borderBottom: "1px solid #f1f5f9" }}>
+          {/* Admin identity — matches coordinator banner style */}
+          <div style={{
+            background: regionMeta?.bg ?? "#f8fafc",
+            borderBottom: `2px solid ${regionMeta?.border ?? "#e2e8f0"}`,
+            padding: "14px 18px",
+            display: "flex", alignItems: "center", gap: 12,
+          }}>
             {sessionLoading ? (
-              <div style={{ height: 48, background: "#f1f5f9", borderRadius: 10 }} />
+              <div style={{ height: 48, background: "#f1f5f9", borderRadius: 10, flex: 1 }} />
             ) : session && regionMeta ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <>
                 <div style={{ width: 40, height: 40, borderRadius: 11, background: regionMeta.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "white", fontFamily: "'DM Mono', monospace" }}>{session.region}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: "white", fontFamily: "'DM Mono', monospace" }}>{session.region}</span>
                 </div>
                 <div>
-                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{session.fullName}</p>
-                  <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{session.rldc} Admin</p>
+                  <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{session.fullName}</p>
+                  <p style={{ margin: 0, fontSize: 11, color: regionMeta.color, fontWeight: 700 }}>{session.rldc} Admin</p>
+                  <p style={{ margin: "1px 0 0", fontSize: 10, color: "#64748b" }}>{regionMeta.full}</p>
                 </div>
-              </div>
+              </>
             ) : (
-              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: "12px 14px" }}>
+              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: "12px 14px", flex: 1 }}>
                 <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, color: "#dc2626" }}>Session Error</p>
                 <p style={{ margin: 0, fontSize: 11, color: "#7f1d1d", lineHeight: 1.5 }}>Unable to load admin session. Please refresh or log in again.</p>
               </div>
@@ -375,15 +350,15 @@ export default function AdminApprovalPage() {
               const active = tab === t.key;
               return (
                 <button key={t.key} onClick={() => setTab(t.key)} style={{
-                  flex: 1, padding: "11px 8px", border: "none", borderBottom: `2.5px solid ${active ? "#0f172a" : "transparent"}`,
+                  flex: 1, padding: "11px 8px", border: "none", borderBottom: `2.5px solid ${active ? "#1D4ED8" : "transparent"}`,
                   background: active ? "white" : "transparent", cursor: "pointer",
                   fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" as const,
-                  color: active ? "#0f172a" : "#94a3b8", fontFamily: "'DM Sans', sans-serif",
+                  color: active ? "#1D4ED8" : "#94a3b8", fontFamily: "'DM Sans', sans-serif",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                 }}>
                   {t.label}
                   {t.key === "requests" && !queueLoading && queue.length > 0 && (
-                    <span style={{ background: "#0f172a", color: "white", fontSize: 9, fontWeight: 800, padding: "1px 6px", borderRadius: 99, lineHeight: 1.7, fontFamily: "'DM Mono', monospace" }}>
+                    <span style={{ background: "#1D4ED8", color: "white", fontSize: 9, fontWeight: 800, padding: "1px 6px", borderRadius: 99, lineHeight: 1.7, fontFamily: "'DM Mono', monospace" }}>
                       {queue.length}
                     </span>
                   )}
@@ -396,40 +371,78 @@ export default function AdminApprovalPage() {
           {tab === "requests" ? (
             <>
               <div style={{ padding: "12px 18px 8px", borderBottom: "1px solid #f1f5f9" }}>
-                <p style={{ margin: 0, fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "#94a3b8" }}>Approval Queue</p>
+                <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "#94a3b8" }}>Approval Queue</p>
                 {!queueLoading && !queueError && (
-                  <p style={{ margin: "2px 0 0", fontSize: 12, color: "#64748b" }}>{queue.length} pending {queue.length === 1 ? "request" : "requests"}</p>
+                  <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0f172a" }}>
+                    Registrations
+                    {queue.length > 0 && (
+                      <span style={{ marginLeft: 8, background: "#1D4ED8", color: "white", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, fontFamily: "'DM Mono', monospace", verticalAlign: "middle" }}>
+                        {queue.length}
+                      </span>
+                    )}
+                  </h2>
                 )}
               </div>
               <div style={{ flex: 1, overflowY: "auto", padding: 8 }}>
-                {queueLoading ? [1, 2, 3].map(i => <div key={i} style={{ height: 68, background: "#f1f5f9", borderRadius: 10, marginBottom: 6 }} />) :
-                  queueError ? <div style={{ padding: "32px 12px", textAlign: "center" }}><p style={{ fontSize: 12, color: "#f87171" }}>{queueError}</p></div> :
-                  queue.length === 0 ? (
-                    <div style={{ padding: "48px 12px", textAlign: "center" }}>
-                      <div style={{ fontSize: 32, marginBottom: 10 }}>✅</div>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: "#475569", margin: "0 0 4px" }}>All caught up</p>
-                      <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>No pending requests</p>
-                    </div>
-                  ) : queue.map(req => {
-                    const active = selectedId === req.id;
-                    return (
-                      <button key={req.id} onClick={() => dispatchQueue({ type: "SELECT", id: req.id })} style={{
-                        width: "100%", textAlign: "left", padding: "11px 13px", borderRadius: 10, marginBottom: 5, cursor: "pointer",
-                        border: `1.5px solid ${active ? "#0f172a" : "#f1f5f9"}`,
-                        background: active ? "#0f172a" : "white",
-                        fontFamily: "'DM Sans', sans-serif", transition: "all .15s",
-                      }}>
-                        <p style={{ margin: "0 0 3px", fontSize: 10, fontFamily: "'DM Mono', monospace", color: active ? "#94a3b8" : "#94a3b8" }}>{req.regNumber}</p>
-                        <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: active ? "white" : "#0f172a", lineHeight: 1.3 }}>{req.applicantName}</p>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ fontSize: 10, background: active ? "rgba(255,255,255,0.15)" : "#f1f5f9", color: active ? "white" : "#64748b", padding: "2px 7px", borderRadius: 5, fontWeight: 700, textTransform: "uppercase" as const }}>
-                            {req.registrationType.charAt(0) + req.registrationType.slice(1).toLowerCase()}
-                          </span>
-                          <span style={{ fontSize: 10, color: active ? "#94a3b8" : "#94a3b8" }}>{relativeTime(req.coordinatorApprovedAt)}</span>
+                {queueLoading
+                  ? [1, 2, 3].map(i => <div key={i} style={{ height: 80, background: "#f1f5f9", borderRadius: 10, marginBottom: 6 }} />)
+                  : queueError
+                    ? <div style={{ padding: "32px 12px", textAlign: "center" }}><p style={{ fontSize: 12, color: "#f87171" }}>{queueError}</p></div>
+                    : queue.length === 0
+                      ? (
+                        <div style={{ padding: "48px 12px", textAlign: "center" }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: "#475569", margin: "0 0 4px" }}>All caught up</p>
+                          <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>No pending requests</p>
                         </div>
-                      </button>
-                    );
-                  })}
+                      )
+                      : queue.map(req => {
+                          const active = selectedId === req.id;
+                          return (
+                            <button
+                              key={req.id}
+                              onClick={() => dispatchQueue({ type: "SELECT", id: req.id })}
+                              style={{
+                                width: "100%", textAlign: "left", padding: "11px 13px", borderRadius: 10, marginBottom: 5, cursor: "pointer",
+                                border: `1.5px solid ${active ? "#bfdbfe" : "#f1f5f9"}`,
+                                background: active ? "#EFF6FF" : "white",
+                                fontFamily: "'DM Sans', sans-serif", transition: "all .15s",
+                              }}
+                            >
+                              {/* ── Registration number — top, prominent ── */}
+                              <p style={{
+                                margin: "0 0 4px",
+                                fontSize: 11,
+                                fontFamily: "'DM Mono', monospace",
+                                fontWeight: 700,
+                                color: active ? "#1D4ED8" : "#64748b",
+                                letterSpacing: "0.04em",
+                              }}>
+                                {req.regNumber}
+                              </p>
+
+                              {/* ── Applicant name ── */}
+                              <p style={{ margin: "0 0 7px", fontSize: 13, fontWeight: 600, color: "#0f172a", lineHeight: 1.3 }}>
+                                {req.applicantName}
+                              </p>
+
+                              {/* ── Badges row ── */}
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <span style={{
+                                  fontSize: 10,
+                                  background: active ? "#1D4ED8" : "#f1f5f9",
+                                  color: active ? "white" : "#64748b",
+                                  padding: "2px 7px", borderRadius: 5, fontWeight: 700,
+                                  textTransform: "uppercase" as const,
+                                }}>
+                                  {req.registrationType.charAt(0) + req.registrationType.slice(1).toLowerCase()}
+                                </span>
+                                <span style={{ fontSize: 10, color: "#94a3b8" }}>
+                                  {relativeTime(req.coordinatorApprovedAt)}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
               </div>
               <div style={{ padding: "10px 16px", borderTop: "1px solid #f1f5f9", background: "#f8fafc", display: "flex", alignItems: "center", gap: 7 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
@@ -460,7 +473,10 @@ export default function AdminApprovalPage() {
               )}
             </div>
 
-            <ProgressBar />
+            {/* Progress Bar — step 2 */}
+            <div className="border-t border-slate-100 pt-4">
+              <ProgressBar currentStep={2} />
+            </div>
 
             {/* Action result banners */}
             {actionState === "done-approve" && (
@@ -643,7 +659,7 @@ export default function AdminApprovalPage() {
                         <button
                           onClick={() => submitReview("approve")}
                           disabled={actionState !== "idle"}
-                          style={{ padding: "9px 22px", background: actionState !== "idle" ? "#475569" : "#0f172a", border: "none", borderRadius: 9, color: "white", fontSize: 13, fontWeight: 700, cursor: actionState !== "idle" ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 7, boxShadow: actionState === "idle" ? "0 2px 8px rgba(15,23,42,0.25)" : "none" }}>
+                          style={{ padding: "9px 22px", background: actionState !== "idle" ? "#475569" : "#1D4ED8", border: "none", borderRadius: 9, color: "white", fontSize: 13, fontWeight: 700, cursor: actionState !== "idle" ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 7, boxShadow: actionState === "idle" ? "0 2px 8px rgba(29,78,216,0.25)" : "none" }}>
                           {actionState === "approving" ? "Approving…" : (
                             <>
                               Grant Final Approval
