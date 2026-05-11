@@ -7,6 +7,13 @@ export type AccountManagerType = {
   altPhone?: string;
 };
 
+// --- NAYA ADD KIYA GAYA HAI ---
+export type OwnerDetailsType = {
+  role: string;
+  managedStations: string;
+  licenseNumber: string;
+};
+
 export type QCADetailsType = {
   licenseNumber: string;
   managedStations?: string;
@@ -14,7 +21,7 @@ export type QCADetailsType = {
 
 export type FormDataType = {
   userType: string;
-  role: string;
+  role: string; // Root level role (Section A)
 
   credentials: {
     username: string;
@@ -30,6 +37,7 @@ export type FormDataType = {
     ownerEmail: string;
     ownerPhone: string;
     rldc: string;
+    role?: string; // Entity details wala role dropdown
   };
 
   associateManagers: {
@@ -39,9 +47,8 @@ export type FormDataType = {
     phone?: string;
   }[];
 
-  // UPDATED METERS TYPE HERE
   meters: {
-    meterNo: string;      // Required
+    meterNo: string;
     meterOwner: string;
     feederName: string;
     type: string;
@@ -53,4 +60,7 @@ export type FormDataType = {
   }[];
 
   qcaDetails?: QCADetailsType; 
+  
+  // --- NAYA ADD KIYA GAYA HAI ---
+  ownerDetails?: OwnerDetailsType; 
 };

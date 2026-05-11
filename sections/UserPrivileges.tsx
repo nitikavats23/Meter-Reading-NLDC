@@ -14,13 +14,12 @@ export default function UserPrivileges({ formData, setFormData }: Props) {
     const { name, value } = e.target;
 
     if (name === "userType") {
+      // Jab userType badle toh purane specific details clear ho jayein
       setFormData({
         userType: value,
-        role: "",
-        qcaDetails:
-          value === "QCA"
-            ? { licenseNumber: "", managedStations: "" }
-            : undefined,
+        role: "", 
+        qcaDetails: value === "QCA" ? { licenseNumber: "", managedStations: "" } : undefined,
+        ownerDetails: value === "OWNER" ? { role: "", managedStations: "", licenseNumber: "" } : undefined,
       });
     }
 
@@ -32,15 +31,25 @@ export default function UserPrivileges({ formData, setFormData }: Props) {
   const getRoleOptions = (): { label: string; value: string }[] => {
     const type = formData.userType;
 
-    if (type === "NLDC" || type === "RLDC") {
+    if (type === "NLDC") {
+      return [
+        { label: "NLDC Admin", value: "NLDC_ADMIN" },
+        { label: "NLDC User", value: "NLDC_USER" },
+        { label: "NLDC Analyst", value: "NLDC_ANALYST" },
+        { label: "NLDC Coordinator", value: "NLDC_COORDINATOR" },
+      ];
+    }
+
+    if (type === "RLDC") {
       return [
         { label: "RLDC Admin", value: "RLDC_ADMIN" },
-        { label: "RLDC Co-ordinator", value: "RLDC_COORDINATOR" },
         { label: "RLDC User", value: "RLDC_USER" },
+        { label: "RLDC Coordinator", value: "RLDC_COORDINATOR" },
         { label: "RLDC Analyst", value: "RLDC_ANALYST" },
       ];
     }
 
+    // Owner, Substation, aur QCA ke liye simple "User" role root level par
     if (["OWNER", "SUBSTATION", "QCA"].includes(type)) {
       return [{ label: "User", value: "USER" }];
     }
@@ -54,7 +63,6 @@ export default function UserPrivileges({ formData, setFormData }: Props) {
     <div id="userprivileges">
       <SectionCard title="Section A - User Privileges">
         <div className="grid grid-cols-2 gap-8">
-          {/* User Type Field */}
           <div>
             <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
               User Type <span className="text-red-500 font-bold">*</span>
@@ -74,7 +82,6 @@ export default function UserPrivileges({ formData, setFormData }: Props) {
             </select>
           </div>
 
-          {/* Select Role Field */}
           <div>
             <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
               Select Role <span className="text-red-500 font-bold">*</span>

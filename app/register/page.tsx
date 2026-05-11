@@ -8,6 +8,7 @@ import AccountManager from "@/sections/AccountManager";
 import EntityDetails from "@/sections/EntityDetails";
 import AssociateManager from "@/sections/AssociateManager";
 import QCADetails from "@/sections/QCADetails";
+import OwnerDetails from "@/sections/OwnerDetails"; 
 import MeterDetails from "@/components/MeterDetails";
 import ProgressBar from "@/components/ProgressBar";
 import { FormDataType } from "@/types/form";
@@ -39,6 +40,11 @@ const initialFormData: FormDataType = {
     licenseNumber: "",
     managedStations: "",
   },
+  ownerDetails: {
+    role: "",
+    managedStations: "",
+    licenseNumber: "",
+  }
 };
 
 // ── Overlay Component ──────────────────────────────────────────────────────────
@@ -60,7 +66,6 @@ function RegistrationSuccessOverlay({
         className="bg-white rounded-2xl shadow-xl p-10 max-w-md w-full mx-4 text-center space-y-5 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
@@ -70,7 +75,6 @@ function RegistrationSuccessOverlay({
           </svg>
         </button>
 
-        {/* Success icon */}
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
           <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -86,7 +90,6 @@ function RegistrationSuccessOverlay({
           will be sent to your registered email address once approved.
         </p>
 
-        {/* Progress Bar — step 1: awaiting coordinator */}
         <div className="border-t border-slate-100 pt-4">
           <ProgressBar currentStep={1} />
         </div>
@@ -128,6 +131,7 @@ export default function RegisterPage() {
         sectionE: formData.associateManagers,
         sectionF: formData.meters,
         sectionG: formData.qcaDetails,
+        sectionH: formData.ownerDetails,
       };
 
       const res = await fetch("/api/register", {
@@ -139,14 +143,12 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        console.error(" API ERROR:", data);
         throw new Error(data.error || "Registration failed");
       }
 
-      console.log("SUCCESS:", data);
       setSubmitted(true);
 
-      if (formData.role === "COORDINATOR") {
+      if (formData.role.includes("COORDINATOR")) {
         router.push("/coordinator");
       } else {
         setShowSuccess(true);
@@ -161,11 +163,11 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
+      {/* UPDATE: Yahan userType pass kiya gaya hai sidebar ko update karne ke liye */}
+      <Sidebar userType={formData.userType} />
 
       <main className="flex-1 p-8 space-y-8 overflow-y-auto max-w-6xl mx-auto">
 
-        {/* Progress Bar — always visible at top, step 0 while filling */}
         <div className="bg-white rounded-xl shadow-sm px-6 py-4 border border-slate-100">
           <ProgressBar currentStep={0} />
         </div>
@@ -190,12 +192,25 @@ export default function RegisterPage() {
           <AssociateManager setFormData={updateFormData} />
         </div>
 
-        <div id="meterdetails">
-          <MeterDetails setFormData={updateFormData} />
-        </div>
+        {/* SECTION F: Meter Details (Hides for NLDC/RLDC) */}
+        {formData.userType !== "NLDC" && formData.userType !== "RLDC" && (
+          <div id="meterdetails">
+            <MeterDetails setFormData={updateFormData} />
+          </div>
+        )}
 
+        {/* SECTION G: QCA Details (Only for QCA) */}
         {formData.userType === "QCA" && (
-          <QCADetails formData={formData} setFormData={updateFormData} />
+          <div id="qcadetails">
+            <QCADetails formData={formData} setFormData={updateFormData} />
+          </div>
+        )}
+
+        {/* SECTION H: Owner Details (Only for OWNER) */}
+        {formData.userType === "OWNER" && (
+          <div id="ownerdetails">
+            <OwnerDetails formData={formData} setFormData={updateFormData} />
+          </div>
         )}
 
         <div className="pt-8 border-t border-gray-200 flex flex-col items-start">
@@ -213,12 +228,11 @@ export default function RegisterPage() {
           </button>
 
           <p className="mt-3 text-[11px] text-slate-400 italic font-medium">
-            * Please review all sections (A-G) before final submission.
+            * Please review all sections (A-H) before final submission.
           </p>
         </div>
       </main>
 
-      {/* Success Overlay with Progress Bar at step 1 */}
       <RegistrationSuccessOverlay
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
