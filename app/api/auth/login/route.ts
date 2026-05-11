@@ -1,3 +1,5 @@
+
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/utils/hash";
@@ -44,11 +46,12 @@ function setAuthCookies(
 // ─── POST /api/auth/login ────────────────────────────────────────────────────
 export async function POST(req: Request) {
   try {
-    const { identifier, password, captcha, role, rememberMe } = await req.json();
+    const { identifier, password, captcha, rememberMe } = await req.json();
+    // ⚠️ `role` is no longer accepted from the client — it's read from the DB instead
 
     // 1. Validation
-    if (!identifier || !password || !captcha || !role) {
-      console.log("❌ [1] Missing fields");
+    if (!identifier || !password || !captcha) {
+      
       return NextResponse.json({ message: "Missing credentials" }, { status: 400 });
     }
 
@@ -60,7 +63,7 @@ export async function POST(req: Request) {
     });
     const captchaData = await captchaRes.json();
     if (!captchaData.success) {
-      console.log("❌ [2] CAPTCHA failed");
+      
       return NextResponse.json({ message: "CAPTCHA verification failed" }, { status: 400 });
     }
 
@@ -73,32 +76,24 @@ export async function POST(req: Request) {
     });
 
     if (!user || !(await verifyPassword(password, user.password))) {
-      console.log("❌ [3] Invalid credentials");
+      
       return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
     }
 
-    // 4. Verify Role
-    const VALID_ROLES = ["USER", "RLDC_COORDINATOR", "RLDC_ADMIN", "SUPER_ADMIN"];
-    if (!VALID_ROLES.includes(role)) {
-      console.log("❌ [4] Invalid role string");
-      return NextResponse.json({ message: "Invalid role selected" }, { status: 403 });
-    }
-
+    // 4. Read Role from DB (no longer validated against client-sent value)
     const roleAssignment = await prisma.roleAssignment.findUnique({
       where: { userId: user.id },
     });
 
     if (!roleAssignment) {
-      console.log("❌ [5] No role assignment found");
+      
       return NextResponse.json({ message: "No role assigned to this user" }, { status: 403 });
     }
 
-    if (roleAssignment.role !== role) {
-      console.log("❌ [5] Role mismatch");
-      return NextResponse.json(
-        { message: `This account is not registered as ${role.replaceAll("_", " ")}` },
-        { status: 403 }
-      );
+    const VALID_ROLES = ["USER", "RLDC_COORDINATOR", "RLDC_ADMIN", "SUPER_ADMIN"];
+    if (!VALID_ROLES.includes(roleAssignment.role)) {
+      
+      return NextResponse.json({ message: "Invalid role assigned to this account" }, { status: 403 });
     }
 
     // 5. Check Activation
@@ -108,20 +103,22 @@ export async function POST(req: Request) {
     });
 
     if (!approval || approval.status !== "Activated") {
-      console.log("❌ [6] Account not activated. Status:", approval?.status);
+      
       return NextResponse.json(
         { message: "Your account is not activated yet" },
         { status: 403 }
       );
     }
-    console.log("✅ All checks passed — setting cookies");
 
-    // 6. Build Response
+    
+
+    // 6. Build Response (role returned to client for redirect)
     const cookieAge = rememberMe ? REMEMBER_ME_AGE : DEFAULT_AGE;
 
     const response = NextResponse.json({
       success: true,
       message: "Login successful",
+      role: roleAssignment.role,                          // ← frontend uses this to redirect
       user: { userId: user.id, role: roleAssignment.role },
     });
 
@@ -202,6 +199,7 @@ export async function GET(req: Request) {
     const response = NextResponse.json({
       success: true,
       message: "Session restored",
+      role: roleAssignment.role,
       user: { userId: stored.userId, role: roleAssignment.role },
     });
 

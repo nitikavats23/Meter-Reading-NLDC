@@ -143,15 +143,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// GET - Fetch pending requests filtered by coordinator's RLDC
 export async function GET(req: NextRequest) {
   try {
-    const rldc = req.nextUrl.searchParams.get("rldc");
-   
+    // Get coordinator ID from cookie
+    const cookieHeader = req.headers.get("cookie") || "";
+    const userId = cookieHeader
+      .split(";")
+      .find((c) => c.trim().startsWith("userId="))
+      ?.split("=")[1]
+      ?.trim();
 
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
+    // Fetch coordinator with their entity to get RLDC
+    const coordinator = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        entity: true,
+        role: true,
+      },
+    });
+
+    if (!coordinator || coordinator.role?.role !== "RLDC_COORDINATOR") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const coordinatorRldc = coordinator.entity?.rldc;
+    if (!coordinatorRldc) {
+      return NextResponse.json(
+        { error: "Coordinator has no RLDC assigned" },
+        { status: 403 }
+      );
+    }
+
+    // Fetch pending approvals where user's entity RLDC matches coordinator's RLDC
     const pendingApprovals = await prisma.approval.findMany({
       where: {
         status: "Pending",
+        user: {
+          entity: {
+            rldc: coordinatorRldc,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -169,24 +205,11 @@ export async function GET(req: NextRequest) {
         },
       },
     });
-    console.log("Coordinator RLDC:", rldc);
-console.log("Entity RLDC values:", pendingApprovals.map(a => ({
-  user: a.user.username,
-  entityRldc: a.user.entity?.rldc
-})));
 
-    type ApprovalWithUser = (typeof pendingApprovals)[number];
-
-    // Filter by coordinator's rldc
-    const filtered: ApprovalWithUser[] = rldc
-      ? pendingApprovals.filter(
-          (a: ApprovalWithUser) => a.user.entity?.rldc === rldc
-        )
-      : pendingApprovals;
-
-    const pendingRequests = filtered.map((approval: ApprovalWithUser) => ({
+    const pendingRequests = pendingApprovals.map((approval) => ({
       id: approval.id,
       userId: approval.userId,
+      regNumber: approval.id.slice(-8), // Use approval ID or generate a reg number
       approverId: approval.approverId,
       status: approval.status,
       remarks: approval.remarks,
@@ -238,12 +261,104 @@ console.log("Entity RLDC values:", pendingApprovals.map(a => ({
       },
     }));
 
-    return NextResponse.json({ pendingRequests }, { status: 200 });
-
+    return NextResponse.json({ pendingRequests, rldc: coordinatorRldc }, { status: 200 });
   } catch (error) {
     console.error("COORDINATOR REQUESTS ERROR:", error);
     return NextResponse.json(
       { error: "Failed to fetch pending requests" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE — reject a request (with RLDC validation)
+export async function DELETE(req: Request) {
+  try {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const userId = cookieHeader
+      .split(";")
+      .find((c) => c.trim().startsWith("userId="))
+      ?.split("=")[1]
+      ?.trim();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Get coordinator with entity
+    const coordinator = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { entity: true, role: true },
+    });
+
+    if (!coordinator || coordinator.role?.role !== "RLDC_COORDINATOR") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const coordinatorRldc = coordinator.entity?.rldc;
+    if (!coordinatorRldc) {
+      return NextResponse.json(
+        { error: "Coordinator has no RLDC assigned" },
+        { status: 403 }
+      );
+    }
+
+    const { registrationId, remarks } = await req.json();
+
+    if (!registrationId) {
+      return NextResponse.json(
+        { error: "registrationId is required" },
+        { status: 400 }
+      );
+    }
+
+    // Verify the target user belongs to the same RLDC
+    const targetUser = await prisma.user.findUnique({
+      where: { id: registrationId },
+      include: { entity: true },
+    });
+
+    if (!targetUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (targetUser.entity?.rldc !== coordinatorRldc) {
+      return NextResponse.json(
+        { error: "You can only reject requests from your own RLDC" },
+        { status: 403 }
+      );
+    }
+
+    // Find the latest pending approval
+    const approval = await prisma.approval.findFirst({
+      where: { userId: registrationId, status: "Pending" },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!approval) {
+      return NextResponse.json(
+        { error: "No pending approval found for this user" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.approval.update({
+      where: { id: approval.id },
+      data: {
+        status: "CoordinatorRejected",
+        remarks: remarks || "Rejected by coordinator",
+        approverId: userId,
+      },
+    });
+
+    return NextResponse.json(
+      { message: "Request rejected successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("COORDINATOR REJECT ERROR:", error);
+    return NextResponse.json(
+      { error: "Failed to reject request" },
       { status: 500 }
     );
   }

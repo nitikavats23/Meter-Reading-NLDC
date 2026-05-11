@@ -5,10 +5,10 @@ export default function Navbar() {
     <div className="bg-blue-700 text-white py-1.5 px-4 flex items-center gap-3 shadow-md">
       <div className="bg-white rounded-full p-0.5 flex items-center justify-center">
         <Image
-          src="/grid.png"
+          src="/GridIndiaLogo.png"
           alt="Grid India Logo"
-          width={32}
-          height={32}
+          width={50}
+          height={50}
           className="rounded-full object-contain"
         />
       </div>
