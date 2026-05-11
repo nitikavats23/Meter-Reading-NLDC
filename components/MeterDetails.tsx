@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react"; // useEffect hata diya
 import SectionCard from "./SectionCard";
 import { FormDataType } from "@/types/form";
 
@@ -23,15 +23,21 @@ export default function MeterDetails({ setFormData }: Props) {
     },
   ]);
 
+  // Ek helper function jo local state aur parent state dono ko sync karega
+  const updateAllData = (newRows: typeof rows) => {
+    setRows(newRows);
+    setFormData({ meters: newRows });
+  };
+
   const handleChange = (index: number, field: string, value: string) => {
     const updated = [...rows];
     // @ts-expect-error Temporary mismatch between API response and type
     updated[index][field] = value;
-    setRows(updated);
+    updateAllData(updated); // Syncing here
   };
 
   const addRow = () => {
-    setRows([...rows, { 
+    const newRows = [...rows, { 
       meterNo: "",
       meterOwner: "CTUIL", 
       feederName: "", 
@@ -41,20 +47,16 @@ export default function MeterDetails({ setFormData }: Props) {
       model: "", 
       fromDate: "",
       locationId: "" 
-    }]);
+    }];
+    updateAllData(newRows); // Syncing here
   };
 
-  // Row delete karne ka function
   const removeRow = (index: number) => {
-    // Ye check karega ki kam se kam 1 row bachi rahe
     if (rows.length > 1) {
-      setRows(rows.filter((_, i) => i !== index));
+      const newRows = rows.filter((_, i) => i !== index);
+      updateAllData(newRows); // Syncing here
     }
   };
-
-  useEffect(() => {
-    setFormData({ meters: rows });
-  }, [rows, setFormData]);
 
   return (
     <div id="meterdetails">
@@ -62,7 +64,7 @@ export default function MeterDetails({ setFormData }: Props) {
         <div className="space-y-4">
           <div className="overflow-x-auto border border-slate-200 rounded-lg">
             <table className="w-full text-left border-collapse min-w-[1150px]">
-              <thead className="bg-slate-50 border-b font-bold border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+              <thead className="bg-slate-50 border-b font-bold border-slate-200 text-[10px] uppercase text-slate-500">
                 <tr>
                   <th className="px-3 py-3 border-r">Meter No. *</th>
                   <th className="px-3 py-3 border-r">Owner</th>
@@ -110,8 +112,6 @@ export default function MeterDetails({ setFormData }: Props) {
                     <td className="p-2 border-r">
                       <input type="date" className="w-full p-1.5 text-[11px] border rounded-md" value={row.fromDate} onChange={(e) => handleChange(index, "fromDate", e.target.value)} />
                     </td>
-
-                    {/* LAST ME CROSS BUTTON */}
                     <td className="p-2 text-center">
                       {rows.length > 1 ? (
                         <button

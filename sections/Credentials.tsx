@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import SectionCard from "@/components/SectionCard";
 import { FormDataType } from "@/types/form";
 
@@ -12,11 +12,13 @@ export default function Credentials({ setFormData }: Props) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  useEffect(() => {
+  // Jab user input field se baahar click karega (onBlur), 
+  // tabhi main form data update hoga. Isse infinite loop nahi banega.
+  const handleUpdate = () => {
     setFormData({
       credentials: { username, password },
     });
-  }, [username, password]);
+  };
 
   return (
     <div id="credentials">
@@ -33,6 +35,7 @@ export default function Credentials({ setFormData }: Props) {
               placeholder="Enter your email" 
               value={username} 
               onChange={(e) => setUsername(e.target.value)} 
+              onBlur={handleUpdate} // Data sync on blur
             />
           </div>
 
@@ -47,6 +50,7 @@ export default function Credentials({ setFormData }: Props) {
               placeholder="Enter password" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
+              onBlur={handleUpdate} // Data sync on blur
             />
           </div>
 
