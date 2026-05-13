@@ -155,37 +155,39 @@ export default function SuperAdminDashboard() {
       setError("Delete failed");
     }
   };
+  const handleToggleStatus = async (userId: string, currentStatus: string) => {
+    const action = currentStatus === "Activated" ? "deactivate" : "activate";
+    try {
+      const res = await fetch("/api/super-admin/rldc-admins", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, action }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess(data.message);
+        await fetchAdmins();
+        setTimeout(() => setSuccess(""), 3000);
+      } else {
+        setError(data.message || "Failed to update status");
+      }
+    } catch {
+      setError("Something went wrong");
+    }
+  };
+
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
   };
-  // const slotsRemainingColor = admins.length >= 5 ? "#94a3b8" : "#f59e0b";
+  
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', sans-serif" }}>
 
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');`}</style>
 
-      {/* ── Navbar ──
-      <nav style={{ background: "#0f172a", borderBottom: "1px solid #1e293b", padding: "0 32px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 32, height: 32, background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="16" height="16" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <span style={{ color: "white", fontWeight: 700, fontSize: 15, letterSpacing: "-0.3px" }}>
-            GRID India — Super Admin
-          </span>
-        </div>
-        <button onClick={handleLogout} style={{ background: "transparent", border: "1px solid #334155", color: "#94a3b8", padding: "6px 14px", borderRadius: 8, fontSize: 13, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
-          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Logout
-        </button>
-      </nav> */}
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px" }}>
 
@@ -311,15 +313,56 @@ export default function SuperAdminDashboard() {
                       <td style={{ padding: "14px 16px", fontSize: 13, color: "#475569" }}>{admin.profile?.email || "—"}</td>
                       <td style={{ padding: "14px 16px", fontSize: 13, color: "#475569" }}>{admin.profile?.phone || "—"}</td>
                       <td style={{ padding: "14px 16px" }}>
-                        <span style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600 }}>
-                          {status}
-                        </span>
-                      </td>
-                      <td style={{ padding: "14px 16px" }}>
-                        <button onClick={() => setDeleteId(admin.id)}
-                          style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "5px 12px", borderRadius: 7, fontSize: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
-                          Remove
-                        </button>
+                        {status === "Activated" ? (
+                        <span style={{
+                        display: "inline-flex", alignItems: "center", gap: 5,
+                        background: "#f0fdf4", color: "#16a34a",
+                        border: "1px solid #bbf7d0",
+                        padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                        }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16a34a", display: "inline-block" }} />
+                         Active
+                      </span>
+                      ) : (
+                       <span style={{
+                       display: "inline-flex", alignItems: "center", gap: 5,
+                       background: "#f8fafc", color: "#64748b",
+                       border: "1px solid #e2e8f0",
+                       padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                       }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#94a3b8", display: "inline-block" }} />
+                          Inactive
+                      </span>
+                       )}
+                    </td>
+                    <td style={{ padding: "14px 16px" }}>
+                       <div style={{ display: "flex", gap: 6 }}>
+                          <button
+                          onClick={() => handleToggleStatus(admin.id, status)}
+                          style={{
+                          background: status === "Activated" ? "#f8fafc" : "#f0fdf4",
+                          color:      status === "Activated" ? "#64748b"  : "#16a34a",
+                          border:     status === "Activated" ? "1px solid #e2e8f0" : "1px solid #bbf7d0",
+                          padding: "5px 12px", borderRadius: 7,
+                          fontSize: 12, cursor: "pointer",
+                          fontFamily: "inherit", fontWeight: 600,
+                          }}
+                          >
+                          {status === "Activated" ? "Set Inactive" : "Set Active"}
+                          </button>
+                          <button
+                          onClick={() => setDeleteId(admin.id)}
+                          style={{
+                          background: "#fef2f2", color: "#dc2626",
+                          border: "1px solid #fecaca",
+                          padding: "5px 12px", borderRadius: 7,
+                          fontSize: 12, cursor: "pointer",
+                          fontFamily: "inherit", fontWeight: 600,
+                          }}
+                          >
+                           Remove
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

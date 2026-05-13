@@ -79,8 +79,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    //const adminRegion = adminUser.entity?.rldc;
-    const adminRegion = adminUser.entity?.rldc || "NRLDC";
+    const adminRegion = adminUser.entity?.rldc;
+    //const adminRegion = adminUser.entity?.rldc || "NRLDC";
 
 console.log("BODY:", body);
 console.log("ADMIN USER:", adminUser);

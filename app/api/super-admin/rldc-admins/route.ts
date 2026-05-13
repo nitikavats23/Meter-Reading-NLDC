@@ -196,3 +196,88 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
+  // ── PATCH — toggle RLDC admin active/inactive ─────────────────────────────────
+export async function PATCH(req: Request) {
+  try {
+    const superAdminId = await verifySuperAdmin();
+    if (!superAdminId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { userId, action } = await req.json(); // action: "activate" | "deactivate"
+    if (!userId || !["activate", "deactivate"].includes(action)) {
+      return NextResponse.json({ message: "Invalid request" }, { status: 400 });
+    }
+
+    // Get the target admin to find their region
+    const targetAdmin = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { entity: true,   role: true, approvals: { orderBy: { createdAt: "desc" }, take: 1 } },
+    });
+
+    if (!targetAdmin || targetAdmin.role?.role !== "RLDC_ADMIN") {
+      return NextResponse.json({ message: "RLDC Admin not found" }, { status: 404 });
+    }
+
+    if (action === "activate") {
+      const region = targetAdmin.entity?.rldc;
+
+      // Deactivate any currently active admin in the same region
+      if (region) {
+        const activeInRegion = await prisma.user.findMany({
+          where: {
+            role: { role: "RLDC_ADMIN" },
+            entity: { rldc: region },
+            approvals: { some: { status: "Activated" } },
+            NOT: { id: userId },
+          },
+          include: { approvals: { orderBy: { createdAt: "desc" }, take: 1 } },
+        });
+
+        for (const admin of activeInRegion) {
+          const latestApproval = admin.approvals[0];
+          if (latestApproval) {
+            await prisma.approval.update({
+              where: { id: latestApproval.id },
+              data: { status: "Inactive", remarks: "Deactivated — another admin activated for this region" },
+            });
+          }
+        }
+      }
+
+      // Activate this admin
+      const latestApproval = targetAdmin.approvals[0];
+      if (latestApproval) {
+        await prisma.approval.update({
+          where: { id: latestApproval.id },
+          data: { status: "Activated", remarks: `Activated by Super Admin` },
+        });
+      } else {
+        await prisma.approval.create({
+          data: {
+            userId,
+            approverId: superAdminId,
+            status: "Activated",
+            remarks: "Activated by Super Admin",
+          },
+        });
+      }
+
+      return NextResponse.json({ success: true, message: "Admin activated" });
+    }
+
+    // Deactivate
+    const latestApproval = targetAdmin.approvals[0];
+    if (latestApproval) {
+      await prisma.approval.update({
+        where: { id: latestApproval.id },
+        data: { status: "Inactive", remarks: "Deactivated by Super Admin" },
+      });
+    }
+
+    return NextResponse.json({ success: true, message: "Admin deactivated" });
+  } catch (error) {
+    console.error("PATCH RLDC ADMIN ERROR:", error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
+}
