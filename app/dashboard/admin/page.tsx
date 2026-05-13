@@ -384,13 +384,8 @@ export default function AdminApprovalPage() {
                             <button key={req.id} onClick={() => dispatchQueue({ type: "SELECT", id: req.id })}
                               style={{ width: "100%", textAlign: "left", padding: "11px 13px", borderRadius: 10, marginBottom: 5, cursor: "pointer", border: `1.5px solid ${active ? "#bfdbfe" : "#f1f5f9"}`, background: active ? "#EFF6FF" : "white", fontFamily: "'DM Sans', sans-serif", transition: "all .15s" }}>
                               <p style={{ margin: "0 0 4px", fontSize: 11, fontFamily: "'DM Mono', monospace", fontWeight: 700, color: active ? "#1D4ED8" : "#64748b", letterSpacing: "0.04em" }}>{req.regNumber}</p>
-                              <p style={{ margin: "0 0 7px", fontSize: 13, fontWeight: 600, color: "#0f172a", lineHeight: 1.3 }}>{req.applicantName}</p>
-                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <span style={{ fontSize: 10, background: active ? "#1D4ED8" : "#f1f5f9", color: active ? "white" : "#64748b", padding: "2px 7px", borderRadius: 5, fontWeight: 700, textTransform: "uppercase" as const }}>
-                                  {req.registrationType.charAt(0) + req.registrationType.slice(1).toLowerCase()}
-                                </span>
-                                <span style={{ fontSize: 10, color: "#94a3b8" }}>{relativeTime(req.coordinatorApprovedAt)}</span>
-                              </div>
+                              
+                             
                             </button>
                           );
                         })}

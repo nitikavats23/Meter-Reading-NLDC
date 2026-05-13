@@ -19,6 +19,8 @@ export async function POST(req: Request) {
     const cookieStore = await cookies();
     const coordinatorId = cookieStore.get("userId")?.value;
 
+    
+
     // 2. Find the registering user's RLDC from their entity
     const registeringUser = await prisma.user.findUnique({
       where: { id: registrationId },
@@ -73,6 +75,9 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
+        console.log("COORDINATOR ID FROM COOKIE:", coordinatorId);
+console.log("MATCHING ADMIN ID:", matchingAdmin.id);
+console.log("SAVING approverId AS:", coordinatorId);
 
     console.log(`[FORWARD] Matched admin: ${matchingAdmin.id} (${matchingAdmin.username}) for ${userRldc}`);
 
@@ -89,15 +94,25 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Update approval — status → CoordinatorApproved, approverId → matching RLDC admin
-    await prisma.approval.update({
-      where: { id: approval.id },
-      data: {
-        status: "CoordinatorApproved",
-        approverId: matchingAdmin.id,   // ← routed to the correct RLDC admin
-        remarks: remarks || null,
-      },
-    });
+    // Step 5 — update existing row to record coordinator's action
+await prisma.approval.update({
+  where: { id: approval.id },
+  data: {
+    status: "CoordinatorApproved",
+    approverId: coordinatorId,   // ← the actual coordinator (Aditi)
+    remarks: remarks || null,
+  },
+});
+
+// Step 5b — create a new pending row targeted at the RLDC Admin
+await prisma.approval.create({
+  data: {
+    userId: registrationId,
+    status: "Pending",
+    approverId: matchingAdmin.id,  // ← pre-assigned to the correct admin
+    remarks: null,
+  },
+});
 
     // 6. Optionally update role assignment
     if (assignedRole) {
@@ -125,4 +140,5 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+  
 }

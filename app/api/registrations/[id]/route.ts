@@ -6,8 +6,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params; // ← await params first
+    const { id } = await params;
 
+    // This is the CoordinatorApproved approval row from the queue
     const approval = await prisma.approval.findUnique({
       where: { id },
       include: {
@@ -19,6 +20,10 @@ export async function GET(
             meters: true,
             qcaDetails: true,
             associateManagers: true,
+            // ← get ALL approval rows for this user
+            approvals: {
+              orderBy: { createdAt: "asc" },
+            },
           },
         },
       },
@@ -28,12 +33,25 @@ export async function GET(
       return NextResponse.json({ error: "Record not found" }, { status: 404 });
     }
 
-    const isRealApproverId =
-      approval.approverId && approval.approverId !== "PENDING";
+    const allApprovals = approval.user.approvals;
 
-    const coordinator = isRealApproverId
+
+    // The first row is the original submission (Pending)
+    const submissionRow = allApprovals.find(
+      (a) => a.status === "Pending" || a.status === "CoordinatorApproved"
+    );
+
+    // The CoordinatorApproved row has the coordinator's id as approverId
+    const coordinatorApprovalRow = allApprovals.find(
+      (a) => a.status === "CoordinatorApproved"
+    );
+
+    const coordinatorId = coordinatorApprovalRow?.approverId;
+    const isRealCoordinatorId = coordinatorId && coordinatorId !== "PENDING";
+
+    const coordinator = isRealCoordinatorId
       ? await prisma.user.findUnique({
-          where: { id: approval.approverId! },
+          where: { id: coordinatorId },
           include: { profile: true },
         })
       : null;
@@ -56,10 +74,17 @@ export async function GET(
             email: coordinator.profile?.email ?? "",
           }
         : null,
-      coordinatorRemarks: approval.remarks ?? null,
-      coordinatorApprovedAt: approval.createdAt.toISOString(),
-      submittedAt: approval.createdAt.toISOString(),
+      coordinatorRemarks: coordinatorApprovalRow?.remarks ?? null,
+      // ← now these are two different timestamps
+      coordinatorApprovedAt: coordinatorApprovalRow?.createdAt.toISOString() ?? null,
+      submittedAt: submissionRow?.createdAt.toISOString() 
+        ?? allApprovals[0]?.createdAt.toISOString() 
+        ?? approval.createdAt.toISOString(),
     };
+        console.log("ALL APPROVALS FOR USER:", JSON.stringify(allApprovals, null, 2));
+console.log("COORDINATOR ROW:", coordinatorApprovalRow);
+console.log("COORDINATOR ID:", coordinatorId);
+console.log("COORDINATOR USER:", coordinator);
 
     return NextResponse.json(record, { status: 200 });
 
