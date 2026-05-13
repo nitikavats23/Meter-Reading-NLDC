@@ -31,7 +31,7 @@ export default function QCADetails({ formData, setFormData }: Props) {
           {/* License Number */}
           <div>
             <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
-              License Number
+              License Number <span className="text-red-500 font-bold">*</span>
             </label>
             <input
               type="text"
@@ -39,14 +39,14 @@ export default function QCADetails({ formData, setFormData }: Props) {
               value={formData.qcaDetails?.licenseNumber || ""}
               onChange={handleChange}
               placeholder="Enter License Number"
-              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all shadow-sm"
             />
           </div>
 
           {/* Managed Stations */}
           <div>
             <label className="block mb-1.5 text-[12px] font-bold text-slate-800 uppercase tracking-wide">
-              Managed Stations
+              Managed Stations <span className="text-red-500 font-bold">*</span>
             </label>
             <input
               type="text"
@@ -54,7 +54,7 @@ export default function QCADetails({ formData, setFormData }: Props) {
               value={formData.qcaDetails?.managedStations || ""}
               onChange={handleChange}
               placeholder="Enter Managed Stations"
-              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100"
+              className="w-full border border-gray-300 p-2.5 rounded-lg text-[13px] text-slate-700 font-medium outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-100 transition-all shadow-sm"
             />
           </div>
 
