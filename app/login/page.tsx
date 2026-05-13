@@ -24,28 +24,14 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
   const [loading, setLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
 
   const recaptchaRef = useRef<ReCAPTCHA>(null);
   const router = useRouter();
 
-  // Password Validation Logic
-  const validatePassword = (pw: string) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return regex.test(pw);
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordError("");
 
-    // 1. Password Check
-    if (!validatePassword(password)) {
-      setPasswordError("Password must have: Capital, Small, Number & Special Char (Min. 8)");
-      return;
-    }
-
-    // 2. CAPTCHA Check
+    // 1. CAPTCHA Check
     if (!captchaToken) { 
       alert("Please complete the CAPTCHA"); 
       return; 
@@ -113,7 +99,7 @@ export default function LoginPage() {
             style={{ transform: mode === "email" ? "translateX(calc(100%))" : "translateX(0)", left: "4px" }}
           />
           {(["username", "email"] as LoginMode[]).map((m) => (
-            <button key={m} type="button" onClick={() => { setMode(m); setIdentifier(""); setPasswordError(""); }}
+            <button key={m} type="button" onClick={() => { setMode(m); setIdentifier(""); }}
               className={`flex-1 py-2 text-xs font-semibold rounded-md relative z-10 transition-colors capitalize
                 ${mode === m ? "text-blue-600" : "text-slate-400 hover:text-slate-600"}`}>
               {m}
@@ -163,13 +149,10 @@ export default function LoginPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => {
-                   setPassword(e.target.value);
-                   if(passwordError) setPasswordError(""); // Typing par error hide karein
-                }}
-                placeholder="User@123 (Example)"
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
                 required
-                className={`w-full bg-slate-50 border rounded-lg pl-9 pr-9 py-2.5 text-sm outline-none transition-all ${passwordError ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'}`}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-9 py-2.5 text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -185,12 +168,6 @@ export default function LoginPage() {
                 )}
               </button>
             </div>
-            {/* Error Message UI */}
-            {passwordError && (
-              <p className="mt-1 text-[10px] text-red-500 font-medium animate-pulse">
-                {passwordError}
-              </p>
-            )}
           </div>
 
           {/* Remember + Forgot Links */}
