@@ -75,9 +75,7 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
-        console.log("COORDINATOR ID FROM COOKIE:", coordinatorId);
-console.log("MATCHING ADMIN ID:", matchingAdmin.id);
-console.log("SAVING approverId AS:", coordinatorId);
+        
 
     console.log(`[FORWARD] Matched admin: ${matchingAdmin.id} (${matchingAdmin.username}) for ${userRldc}`);
 
@@ -99,7 +97,7 @@ await prisma.approval.update({
   where: { id: approval.id },
   data: {
     status: "CoordinatorApproved",
-    approverId: coordinatorId,   // ← the actual coordinator (Aditi)
+    approverId: coordinatorId,   
     remarks: remarks || null,
   },
 });

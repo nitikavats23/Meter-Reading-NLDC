@@ -9,10 +9,10 @@ export async function GET(req: NextRequest) {
     // =========================
 
      const allCookies = req.cookies.getAll();
-    console.log("All cookies received:", allCookies);
+    
 
     const userId = req.cookies.get("userId")?.value;
-    console.log("userId cookie:", userId);
+    
 
     if (!userId) {
       return NextResponse.json(

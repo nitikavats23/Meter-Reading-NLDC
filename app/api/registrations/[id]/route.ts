@@ -81,10 +81,6 @@ export async function GET(
         ?? allApprovals[0]?.createdAt.toISOString() 
         ?? approval.createdAt.toISOString(),
     };
-        console.log("ALL APPROVALS FOR USER:", JSON.stringify(allApprovals, null, 2));
-console.log("COORDINATOR ROW:", coordinatorApprovalRow);
-console.log("COORDINATOR ID:", coordinatorId);
-console.log("COORDINATOR USER:", coordinator);
 
     return NextResponse.json(record, { status: 200 });
 
