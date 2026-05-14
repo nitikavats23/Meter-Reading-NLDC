@@ -598,8 +598,7 @@ async function fetchCoordinator() {
                         style={{ width: "100%", textAlign: "left", padding: "10px 12px", borderRadius: 8, marginBottom: 3, cursor: "pointer", borderLeft: active ? "3px solid #1d3461" : "3px solid transparent", borderTop: "none", borderRight: "none", borderBottom: "none", background: active ? "#f0f4ff" : "transparent", fontFamily: "'Inter', sans-serif", display: "block", transition: "all .12s" }}
                       >
                         <p style={{ margin: "0 0 2px", fontSize: 11.5, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700, color: active ? "#1d3461" : "#0f172a" }}>{req.regNumber}</p>
-                        {/* <p style={{ margin: "0 0 3px", fontSize: 12, fontWeight: 500, color: "#334155" }}>{req.applicantName}</p>
-                        <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{fmtDate(req.coordinatorApprovedAt)}</p> */}
+                        
                       </button>
                     );
                   })}
@@ -719,7 +718,7 @@ async function fetchCoordinator() {
                     </div>
 
                     {/* Coordinator review */}
-                    <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "13px 16px" }}>
+                    {/* <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "13px 16px" }}>
                       <p style={{ margin: "0 0 10px", fontSize: 10, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "#92400e" }}>Coordinator Review</p>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
                         <div>
@@ -740,7 +739,7 @@ async function fetchCoordinator() {
                       </div>
                     </div>
 
-                    {/* Documents */}
+                    {/* Documents }
                     {record.documents?.length > 0 && (
                       <div>
                         <p style={{ margin: "0 0 8px", fontSize: 10, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "#94a3b8" }}>Submitted Documents</p>
@@ -753,7 +752,17 @@ async function fetchCoordinator() {
                           ))}
                         </div>
                       </div>
-                    )}
+                    )} */}
+
+                    {/* Coordinator review */}
+                     <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "13px 16px" }}>
+                    <div>
+                        <p style={{ margin: "0 0 3px", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94a3b8" }}> Coordinator Remarks</p>
+                        <p style={{ margin: 0, fontSize: 12, color: "#475569", fontStyle: "italic", lineHeight: 1.55 }}>
+                          {record.coordinatorRemarks ? `"${record.coordinatorRemarks}"` : "No remarks provided."}
+                        </p>
+                      </div>
+                      </div>
 
                     {/* On Approval */}
                     <OnApprovalSection record={record} />
