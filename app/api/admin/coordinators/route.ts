@@ -21,6 +21,43 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
+
+export async function GET() {
+  try {
+    const coordinators = await prisma.user.findMany({
+      where: {
+        role: {
+          role: "RLDC_COORDINATOR",
+        },
+      },
+      include: {
+        profile: true,
+        entity: true,
+         approvals: true,
+      },
+    });
+
+    return NextResponse.json(
+      coordinators.map((c) => ({
+        id: c.id,
+        name: c.profile?.fullName || "",
+        email: c.profile?.email || "",
+        rldc: c.entity?.rldc || "",
+        designation: c.profile?.designation || "",
+        isActive: c.approvals.some(
+    (a) => a.status === "Activated"
+  ),
+      }))
+    );
+  } catch (error) {
+    console.error("GET COORDINATORS ERROR:", error);
+
+    return NextResponse.json(
+      { error: "Failed to fetch coordinators" },
+      { status: 500 }
+    );
+  }
+}
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as {
@@ -208,4 +245,61 @@ console.log("ADMIN REGION:", adminRegion);
     }
   );
 }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+
+    const {
+      coordinatorId,
+      isActive,
+    } = body;
+
+    if (!coordinatorId) {
+      return NextResponse.json(
+        { message: "Coordinator ID required" },
+        { status: 400 }
+      );
+    }
+
+    // latest approval row
+    const latestApproval = await prisma.approval.findFirst({
+      where: {
+        userId: coordinatorId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (!latestApproval) {
+      return NextResponse.json(
+        { message: "Approval record not found" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.approval.update({
+      where: {
+        id: latestApproval.id,
+      },
+      data: {
+        status: isActive ? "Activated" : "Pending",
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      isActive,
+    });
+
+  } catch (error) {
+    console.error("PATCH COORDINATOR ERROR:", error);
+
+    return NextResponse.json(
+      { message: "Failed to update coordinator" },
+      { status: 500 }
+    );
+  }
 }

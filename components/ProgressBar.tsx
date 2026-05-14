@@ -91,10 +91,10 @@ export default function ProgressBar({ currentStep }: { currentStep: number }) {
         fontWeight: 600,
         color: "#64748B",
       }}>
-        {currentStep === 0 && "Step 1: Submitted"}
-        {currentStep === 1 && "Step 2: Reviewing"}
-        {currentStep === 2 && "Step 3: Approving"}
-        {currentStep === 3 && "Step 4: Activating"}
+        {currentStep === 0 && "Step 1: Form successfully submitted"}
+        {currentStep === 1 && "Step 2: Awaiting coordinator review"}
+        {currentStep === 2 && "Step 3: Under admin approval process "}
+        {currentStep === 3 && "Step 4: Final account activation"}
       </div>
     </div>
   );
