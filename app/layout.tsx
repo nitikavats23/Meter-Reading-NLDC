@@ -41,8 +41,7 @@
 //     </html>
 //   );
 // }
-
-"use client"; // Client component banaya taaki pathname check kar sakein
+"use client"; // Pathname check karne ke liye zaroori hai
 
 import { Geist, Geist_Mono } from "next/font/google";
 import { usePathname } from "next/navigation"; 
@@ -59,9 +58,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Note: Metadata ko 'use client' ke saath layout mein nahi rakh sakte.
-// Isliye title ko seedha <title> tag mein niche daal diya hai.
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -69,7 +65,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
 
-  // Agar current page '/login' hai, toh isLoginPage true hoga
+  // Agar current page '/login' hai, toh Navbar nahi dikhega
   const isLoginPage = pathname === "/login";
 
   return (
@@ -82,13 +78,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col antialiased bg-gray-100`}
       >
         {/* 
-          YAHAN LOGIC HAI: 
-          Agar isLoginPage nahi hai (!isLoginPage), tabhi Navbar dikhao.
+          Yahan logic update kiya hai:
+          1. !isLoginPage condition waisi hi hai.
+          2. Navbar se 'userName' aur 'rldcName' props hata diye hain.
+          Ab Navbar khud '/api/auth/me' se data fetch karega.
         */}
-        {!isLoginPage && <Navbar userName="Ankit Verma" rldcName="NRLDC" />}
+        {!isLoginPage && <Navbar />}
 
         {/* Page Content */}
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">
+          {children}
+        </main>
       </body>
     </html>
   );
